@@ -1,0 +1,205 @@
+# Email Bot
+
+Bot que varre contas de email via IMAP, aplica regras de filtro e envia notificações no **WhatsApp** (Z-API) e **Telegram**.
+
+## Arquitetura
+
+```
+src/
+  shared/          # Código reutilizável (roda em Node.js e Deno)
+    types.ts        # Tipos compartilhados
+    filter.ts       # Match de regras de filtro
+    formatter.ts    # Formatação de mensagens
+    imap.ts         # Leitura de emails via IMAP
+    supabase.ts     # Acesso ao banco Supabase
+    notifiers/
+      telegram.ts   # Envio de notificações Telegram
+      whatsapp.ts   # Envio de notificações WhatsApp
+  node/
+    index.ts        # Entry point Node.js (GitHub Actions)
+supabase/
+  functions/
+    init/           # Edge Function para Supabase Cron
+    telegram-webhook/  # Edge Function para trigger manual via Telegram
+```
+
+### Ambientes suportados
+
+| Ambiente | Runtime | Quando executa |
+|----------|---------|----------------|
+| **GitHub Actions** | Node.js | Agendado (cron) + manual via Telegram |
+| **Supabase** | Deno (Edge Functions) | Agendado (pg_cron) |
+
+O código em `src/shared/` é **compartilhado** entre ambos os ambientes.
+
+---
+
+## Configuração
+
+### 1. Banco de Dados (Supabase)
+
+Execute os scripts SQL no **SQL Editor** do Supabase:
+
+```bash
+scripts/01_schema.sql   # Cria as tabelas
+scripts/02_seed.sql     # Dados de exemplo (edite antes!)
+```
+
+### 2. Variáveis de Ambiente
+
+#### GitHub Actions Secrets
+
+| Secret | Descrição |
+|--------|-----------|
+| `SUPABASE_URL` | URL do projeto Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key do Supabase |
+| `TELEGRAM_BOT_TOKEN` | Token do bot Telegram |
+| `TELEGRAM_CHAT_ID` | Chat ID para notificações |
+| `ZAPI_INSTANCE_ID` | ID da instância Z-API |
+| `ZAPI_TOKEN` | Token da instância Z-API |
+| `WHATSAPP_PHONE` | Telefone para notificações WhatsApp |
+| `GITHUB_PAT` | Personal Access Token (para trigger via Telegram) |
+
+#### GitHub Actions Variables
+
+| Variable | Descrição | Default |
+|----------|-----------|---------|
+| `SCAN_CRON` | Expressão cron para agendamento | `0 */6 * * *` |
+
+#### Secrets para deploy Supabase
+
+| Secret | Descrição |
+|--------|-----------|
+| `GITHUB_PAT` | Personal Access Token do GitHub |
+| `GITHUB_OWNER` | Dono do repositório (usuário ou organização) |
+| `GITHUB_REPO` | Nome do repositório |
+
+---
+
+## Execução Local (Node.js)
+
+```bash
+# Instalar dependências
+npm install
+
+# Executar varredura
+SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
+  TELEGRAM_BOT_TOKEN=... TELEGRAM_CHAT_ID=... \
+  npm run scan
+```
+
+---
+
+## GitHub Actions
+
+### Agendamento Automático
+
+O workflow executa automaticamente no horário definido pela variável `SCAN_CRON`.
+Para alterar:
+
+1. Vá em **Settings > Variables and Secrets > Actions**
+2. Crie a variável `SCAN_CRON` com o valor desejado (ex: `0 */3 * * *`)
+3. Se não definir, o padrão é a cada 6 horas
+
+### Execução Manual
+
+Você pode disparar manualmente:
+
+1. Pelo GitHub: **Actions > Scan Emails > Run workflow**
+2. Pelo Telegram: envie `/scan` para o bot (veja seção abaixo)
+
+---
+
+## Trigger Manual via Telegram
+
+### Como configurar
+
+1. Crie um **Personal Access Token** no GitHub com permissão `actions:write`
+2. Adicione o token como `GITHUB_PAT` nos secrets do Supabase
+3. Adicione `GITHUB_OWNER` e `GITHUB_REPO` nos secrets do Supabase
+4. Faça deploy da Edge Function `telegram-webhook`:
+
+```bash
+cd supabase
+supabase functions deploy telegram-webhook
+supabase secrets set GITHUB_PAT=ghp_xxx
+supabase secrets set GITHUB_OWNER=seu-usuario
+supabase secrets set GITHUB_REPO=email-bot
+```
+
+5. Configure o webhook no BotFather do Telegram:
+
+```bash
+# URL da sua função Supabase
+https://<project>.supabase.co/functions/v1/telegram-webhook
+```
+
+6. Registre o comando no BotFather:
+```
+/scan - Inicia varredura manual de emails
+```
+
+### Uso
+
+Envie `/scan` para o bot Telegram. Opcionalmente, adicione um motivo:
+
+```
+/scan
+/scan Verificando email do chefe
+```
+
+O bot responderá com confirmação e o GitHub Actions iniciará a varredura.
+
+---
+
+## Supabase (via pg_cron)
+
+O agendamento original via Supabase continua funcionando normalmente:
+
+```sql
+select cron.schedule(
+  'scan-emails',
+  '0 */6 * * *',
+  $$ select net.http_post(
+    url:='<SUPABASE_FUNCTION_URL>',
+    headers:=jsonb_build_object(
+      'Content-Type','application/json',
+      'Authorization', 'Bearer <ANON_KEY>'
+    )
+  ) $$
+);
+```
+
+---
+
+## Estrutura do Projeto
+
+```
+email-bot/
+├── .github/workflows/
+│   └── scan-emails.yml        # Workflow GitHub Actions
+├── src/
+│   ├── shared/                # Código compartilhado (Node + Deno)
+│   │   ├── types.ts
+│   │   ├── filter.ts
+│   │   ├── formatter.ts
+│   │   ├── imap.ts
+│   │   ├── supabase.ts
+│   │   └── notifiers/
+│   │       ├── telegram.ts
+│   │       └── whatsapp.ts
+│   └── node/
+│       └── index.ts           # Entry point Node.js
+├── supabase/
+│   ├── config.toml
+│   └── functions/
+│       ├── init/              # Edge Function original
+│       └── telegram-webhook/  # Webhook para trigger manual
+├── scripts/
+│   ├── 01_schema.sql
+│   ├── 02_seed.sql
+│   └── 03_cron.sql
+├── package.json
+├── deno.json
+└── tsconfig.json
+```
