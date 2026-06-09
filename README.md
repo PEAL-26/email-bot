@@ -19,7 +19,7 @@ src/
     index.ts        # Entry point Node.js (GitHub Actions)
 supabase/
   functions/
-    init/           # Edge Function para Supabase Cron
+    scan-emails/    # Edge Function para Supabase Cron
     telegram-webhook/  # Edge Function para trigger manual via Telegram
 ```
 
@@ -197,7 +197,7 @@ email-bot/
 ├── supabase/
 │   ├── config.toml
 │   └── functions/
-│       ├── init/              # Edge Function original
+│       ├── scan-emails/       # Edge Function original
 │       └── telegram-webhook/  # Webhook para trigger manual
 ├── scripts/
 │   ├── 01_schema.sql
@@ -244,9 +244,9 @@ Para evitar que qualquer pessoa dispare workflows, configure o `TELEGRAM_SECRET_
 2. Adicione o token como `TELEGRAM_SECRET_TOKEN` no Supabase
 3. Opcionalmente, configure `TELEGRAM_ALLOWED_CHAT_IDS` (separado por vírgula) para restringir a execução a chats específicos
 
-### Edge Function `init`
+### Edge Function `scan-emails`
 
-A Edge Function `init` pode ser protegida com um `CRON_SECRET`:
+A Edge Function `scan-emails` pode ser protegida com um `CRON_SECRET`:
 
 ```bash
 supabase secrets set CRON_SECRET=sua-chave-secreta

@@ -4,7 +4,7 @@
 -- ============================================================
 
 -- Variável de configuração (ajuste conforme necessário)
--- A URL da Edge Function init do Supabase
+-- A URL da Edge Function scan-emails do Supabase
 -- Substitua <PROJECT_ID> pelo ID do seu projeto Supabase
 
 -- Agendar varredura a cada 6 horas
@@ -13,7 +13,7 @@ select cron.schedule(
   '0 */6 * * *',
   $$
   select net.http_post(
-    url := 'https://footmbgthcbncfekhzov.supabase.co/functions/v1/init',
+    url := 'https://footmbgthcbncfekhzov.supabase.co/functions/v1/scan-emails',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'Authorization', 'Bearer ' || current_setting('app.settings.anon_key', true)
