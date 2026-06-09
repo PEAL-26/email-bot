@@ -18,6 +18,7 @@ export async function sendTelegram(
         text: htmlText,
         parse_mode: "HTML",
       }),
+      signal: AbortSignal.timeout(10000),
     },
   );
 

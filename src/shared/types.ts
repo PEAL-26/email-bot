@@ -4,7 +4,9 @@ export interface EmailAccount {
   imap_host: string;
   imap_port: number;
   email: string;
-  password: string;
+  password: string | null;
+  password_cipher: string | null;
+  password_iv: string | null;
 }
 
 export interface FilterRule {

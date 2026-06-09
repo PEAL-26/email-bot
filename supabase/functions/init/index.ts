@@ -10,7 +10,15 @@ import { formatMessage } from "../../../src/shared/formatter.ts";
 import { sendTelegram } from "../../../src/shared/notifiers/telegram.ts";
 import { sendWhatsApp } from "../../../src/shared/notifiers/whatsapp.ts";
 
-Deno.serve(async (_req) => {
+Deno.serve(async (req) => {
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (cronSecret) {
+    const auth = req.headers.get("Authorization");
+    if (auth !== `Bearer ${cronSecret}`) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+  }
+
   console.log("▶ Iniciando verificação de emails...");
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -98,6 +106,6 @@ Deno.serve(async (_req) => {
     );
   } catch (err: any) {
     console.error("Erro geral:", err);
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Internal error" }), { status: 500 });
   }
 });

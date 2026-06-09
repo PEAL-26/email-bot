@@ -1,14 +1,16 @@
+import "dotenv/config";
+
 import {
   getActiveAccounts,
   getActiveRules,
   isAlreadyNotified,
   registerNotification,
-} from "../shared/supabase.ts";
-import { fetchNewEmails } from "../shared/imap.ts";
-import { matchesRule } from "../shared/filter.ts";
-import { formatMessage } from "../shared/formatter.ts";
-import { sendTelegram } from "../shared/notifiers/telegram.ts";
-import { sendWhatsApp } from "../shared/notifiers/whatsapp.ts";
+} from "../shared/supabase";
+import { fetchNewEmails } from "../shared/imap";
+import { matchesRule } from "../shared/filter";
+import { formatMessage } from "../shared/formatter";
+import { sendTelegram } from "../shared/notifiers/telegram";
+import { sendWhatsApp } from "../shared/notifiers/whatsapp";
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;

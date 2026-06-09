@@ -15,6 +15,7 @@ export async function sendWhatsApp(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone, message: text }),
+      signal: AbortSignal.timeout(10000),
     },
   );
 

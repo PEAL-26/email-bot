@@ -1,13 +1,14 @@
 import type { EmailAccount, FilterRule } from "./types.ts";
 
-let _supabase: any = null;
+const clients = new Map<string, any>();
 
 async function getClient(url: string, key: string) {
-  if (!_supabase) {
+  const id = `${url}:${key.slice(0, 8)}`;
+  if (!clients.has(id)) {
     const { createClient } = await import("@supabase/supabase-js");
-    _supabase = createClient(url, key);
+    clients.set(id, createClient(url, key));
   }
-  return _supabase;
+  return clients.get(id);
 }
 
 export async function getActiveAccounts(

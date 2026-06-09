@@ -59,6 +59,7 @@ scripts/02_seed.sql     # Dados de exemplo (edite antes!)
 | `ZAPI_TOKEN` | Token da instância Z-API |
 | `WHATSAPP_PHONE` | Telefone para notificações WhatsApp |
 | `GITHUB_PAT` | Personal Access Token (para trigger via Telegram) |
+| `EMAIL_ENCRYPTION_KEY` | Chave secreta para encriptação AES-256-GCM das senhas IMAP |
 
 #### GitHub Actions Variables
 
@@ -117,7 +118,8 @@ Você pode disparar manualmente:
 1. Crie um **Personal Access Token** no GitHub com permissão `actions:write`
 2. Adicione o token como `GITHUB_PAT` nos secrets do Supabase
 3. Adicione `GITHUB_OWNER` e `GITHUB_REPO` nos secrets do Supabase
-4. Faça deploy da Edge Function `telegram-webhook`:
+4. Adicione `TELEGRAM_SECRET_TOKEN` nos secrets do Supabase (use o valor retornado pelo BotFather)
+5. Faça deploy da Edge Function `telegram-webhook`:
 
 ```bash
 cd supabase
@@ -125,6 +127,7 @@ supabase functions deploy telegram-webhook
 supabase secrets set GITHUB_PAT=ghp_xxx
 supabase secrets set GITHUB_OWNER=seu-usuario
 supabase secrets set GITHUB_REPO=email-bot
+supabase secrets set TELEGRAM_SECRET_TOKEN=token_do_botfather
 ```
 
 5. Configure o webhook no BotFather do Telegram:
@@ -181,6 +184,7 @@ email-bot/
 ├── src/
 │   ├── shared/                # Código compartilhado (Node + Deno)
 │   │   ├── types.ts
+│   │   ├── crypto.ts           # Encriptação AES-256-GCM
 │   │   ├── filter.ts
 │   │   ├── formatter.ts
 │   │   ├── imap.ts
@@ -203,3 +207,49 @@ email-bot/
 ├── deno.json
 └── tsconfig.json
 ```
+
+---
+
+## Segurança
+
+### Senhas encriptadas
+
+As senhas IMAP são encriptadas com **AES-256-GCM** antes de serem salvas no banco. Configure a chave de encriptação:
+
+```bash
+# GitHub Actions: adicione EMAIL_ENCRYPTION_KEY nos secrets
+# Supabase Edge Functions: supabase secrets set EMAIL_ENCRYPTION_KEY=sua-chave
+# Local: inclua no .env
+# Gerar EMAIL_ENCRYPTION_KEY Ex: openssl rand -base64 32 
+EMAIL_ENCRYPTION_KEY=sua-chave-secreta-forte
+```
+
+> **IMPORTANTE:** Gere uma chave forte (mínimo 32 caracteres). Nunca commite a chave no repositório.
+
+Migração de senhas existentes (plaintext → encriptado):
+
+```typescript
+import { encrypt } from "./src/shared/crypto.ts";
+
+// Para cada conta com password em plaintext:
+const { ciphertext, iv } = await encrypt(plainPassword, process.env.EMAIL_ENCRYPTION_KEY);
+// Atualize no banco: password_cipher = ciphertext, password_iv = iv, password = null
+```
+
+### Webhook do Telegram
+
+Para evitar que qualquer pessoa dispare workflows, configure o `TELEGRAM_SECRET_TOKEN`:
+
+1. No BotFather, use `/setprivacy` ou `/mybots > Bot Settings > Secret Token`
+2. Adicione o token como `TELEGRAM_SECRET_TOKEN` no Supabase
+3. Opcionalmente, configure `TELEGRAM_ALLOWED_CHAT_IDS` (separado por vírgula) para restringir a execução a chats específicos
+
+### Edge Function `init`
+
+A Edge Function `init` pode ser protegida com um `CRON_SECRET`:
+
+```bash
+supabase secrets set CRON_SECRET=sua-chave-secreta
+```
+
+Se configurado, o `pg_cron` deve enviar o header `Authorization: Bearer <CRON_SECRET>`.

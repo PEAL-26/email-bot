@@ -5,6 +5,13 @@ export interface FormattedMessage {
   html: string;
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export function formatMessage(
   email: Email,
   account: EmailAccount,
@@ -20,13 +27,19 @@ export function formatMessage(
     .trim()
     .slice(0, 200);
 
+  const fromDisplay = email.fromName
+    ? `${escapeHtml(email.fromName)} &lt;${escapeHtml(email.from)}&gt;`
+    : escapeHtml(email.from);
+
   const html =
-    `📧 <b>Novo email — ${account.label}</b>\n\n` +
-    `<b>De:</b> ${email.fromName ? `${email.fromName} &lt;${email.from}&gt;` : email.from}\n` +
-    `<b>Assunto:</b> ${email.subject}\n` +
-    `<b>Regra:</b> ${rule.name}\n` +
-    `<b>Data:</b> ${dateStr}\n` +
-    (preview ? `\n<i>${preview}${email.body.length > 200 ? "…" : ""}</i>` : "");
+    `📧 <b>Novo email — ${escapeHtml(account.label)}</b>\n\n` +
+    `<b>De:</b> ${fromDisplay}\n` +
+    `<b>Assunto:</b> ${escapeHtml(email.subject)}\n` +
+    `<b>Regra:</b> ${escapeHtml(rule.name)}\n` +
+    `<b>Data:</b> ${escapeHtml(dateStr)}\n` +
+    (preview
+      ? `\n<i>${escapeHtml(preview)}${email.body.length > 200 ? "…" : ""}</i>`
+      : "");
 
   const plain = html.replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
 
