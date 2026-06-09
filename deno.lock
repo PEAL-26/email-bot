@@ -17,7 +17,19 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/assert@1"
-    ]
+      "jsr:@std/assert@1",
+      "npm:@supabase/supabase-js@2",
+      "npm:imapflow@1"
+    ],
+    "packageJson": {
+      "dependencies": [
+        "npm:@supabase/supabase-js@2",
+        "npm:@types/node@20",
+        "npm:dotenv@^17.4.2",
+        "npm:imapflow@1",
+        "npm:tsx@4",
+        "npm:typescript@5"
+      ]
+    }
   }
 }
