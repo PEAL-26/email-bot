@@ -1,4 +1,5 @@
 import { sendTelegram } from "../_shared/notifiers/telegram.ts";
+import { corsHeaders } from "../_shared/cors";
 
 const GITHUB_TOKEN = Deno.env.get("GITHUB_PAT")!;
 const GITHUB_OWNER = Deno.env.get("GITHUB_OWNER")!;
@@ -35,16 +36,23 @@ function sanitizeReason(raw: string): string {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
     if (req.method !== "POST") {
-      return new Response("Method not allowed", { status: 405 });
+      return new Response("Method not allowed", {
+        headers: corsHeaders,
+        status: 405,
+      });
     }
 
     const secret = Deno.env.get("TELEGRAM_SECRET_TOKEN");
     if (secret) {
       const header = req.headers.get("X-Telegram-Bot-Api-Secret-Token");
       if (header !== secret) {
-        return new Response("Forbidden", { status: 403 });
+        return new Response("Forbidden", { headers: corsHeaders, status: 403 });
       }
     }
 
@@ -52,7 +60,7 @@ Deno.serve(async (req) => {
 
     const message = update.message;
     if (!message || !message.text) {
-      return new Response("OK");
+      return new Response("OK", { headers: corsHeaders });
     }
 
     const chatId = String(message.chat.id);
@@ -61,14 +69,14 @@ Deno.serve(async (req) => {
     if (allowedChats) {
       const allowed = allowedChats.split(",").map((s) => s.trim());
       if (!allowed.includes(chatId)) {
-        return new Response("OK");
+        return new Response("OK", { headers: corsHeaders });
       }
     }
 
     const text = (message.text as string).trim();
 
     if (!text.startsWith("/scan")) {
-      return new Response("OK");
+      return new Response("OK", { headers: corsHeaders });
     }
 
     const reason =
@@ -84,9 +92,9 @@ Deno.serve(async (req) => {
       await sendTelegram(responseText, TG_TOKEN, chatId);
     }
 
-    return new Response("OK");
+    return new Response("OK", { headers: corsHeaders });
   } catch (err: any) {
     console.error("Erro no webhook Telegram:", err);
-    return new Response("OK");
+    return new Response("OK", { headers: corsHeaders });
   }
 });

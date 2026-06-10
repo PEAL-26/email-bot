@@ -1,11 +1,19 @@
 import { scanEmails } from "../_shared/scanner.ts";
+import { corsHeaders } from "../_shared/cors";
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   const cronSecret = Deno.env.get("CRON_SECRET");
   if (cronSecret) {
     const auth = req.headers.get("Authorization");
     if (auth !== `Bearer ${cronSecret}`) {
-      return new Response("Unauthorized", { status: 401 });
+      return new Response("Unauthorized", {
+        headers: corsHeaders,
+        status: 401,
+      });
     }
   }
 
@@ -27,12 +35,13 @@ Deno.serve(async (req) => {
         notificacoes_enviadas: result.totalNotified,
         erros: result.errors,
       }),
-      { headers: { "Content-Type": "application/json" } },
+      { headers: {...corsHeaders,  "Content-Type": "application/json" } },
     );
   } catch (err: any) {
     console.error("Erro geral:", err);
     return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
