@@ -53,3 +53,11 @@ export interface ScanContext {
   supabaseKey: string;
   notifier: NotifierConfig;
 }
+
+export interface ScanSchedule {
+  id: string;
+  cron_expression: string;
+  source: string;
+  description: string | null;
+  active: boolean;
+}

@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "scan": "tsx src/node/index.ts",
-    "scan:build": "tsx src/node/index.ts",
+    "scan": "tsx src/node/scan.ts",
+    "scan:build": "tsx src/node/scan.ts",
     "serve": "tsx src/node/server.ts",
     "scheduler": "tsx src/node/scheduler.ts"
   },
