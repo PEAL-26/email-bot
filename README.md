@@ -197,16 +197,47 @@ email-bot/
 ├── supabase/
 │   ├── config.toml
 │   └── functions/
-│       ├── scan-emails/       # Edge Function original
-│       └── telegram-webhook/  # Webhook para trigger manual
+│       ├── scan-emails/        # Edge Function original
+│       ├── encrypt-password/   # Encripta senhas (usado pelo dashboard)
+│       └── telegram-webhook/   # Webhook para trigger manual
 ├── scripts/
 │   ├── 01_schema.sql
 │   ├── 02_seed.sql
-│   └── 03_cron.sql
+│   ├── 03_cron.sql
+│   └── 04_rls_policies.sql      # RLS policies para dashboard anon
 ├── package.json
 ├── deno.json
 └── tsconfig.json
 ```
+
+---
+
+## Dashboard HTML
+
+O arquivo `dashboard.html` é uma interface estática para gerenciar contas, regras e visualizar notificações.
+
+### Como usar
+
+1. Execute `scripts/04_rls_policies.sql` no SQL Editor do Supabase (libera acesso anon)
+2. Faça deploy das Edge Functions:
+   ```bash
+   supabase functions deploy scan-emails
+   supabase functions deploy encrypt-password
+   ```
+3. Configure o `EMAIL_ENCRYPTION_KEY` no `encrypt-password`:
+   ```bash
+   supabase secrets set EMAIL_ENCRYPTION_KEY=sua-chave
+   ```
+4. Abra o `dashboard.html` no navegador
+5. Preencha a **SUPABASE_URL** e a **Anon Key** (encontradas em Settings > API no Supabase) e clique em **Conectar**
+
+### Funcionalidades
+
+| Tab | Operações |
+|-----|-----------|
+| **Email Accounts** | Visualizar, criar, editar, ativar/desativar |
+| **Notified Emails** | Visualizar (modal com detalhes), filtrar por data |
+| **Filter Rules** | Visualizar, criar, editar, excluir |
 
 ---
 

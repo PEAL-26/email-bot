@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Bot Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+<div id="app" class="max-w-7xl mx-auto p-4">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Email Bot Dashboard</h1>
+    <div class="flex items-center gap-2 text-sm">
+      <label class="text-gray-500">Supabase URL:</label>
+      <input id="sbUrl" type="text" class="border rounded px-2 py-1 w-64 font-mono text-xs" placeholder="https://project.supabase.co">
+      <label class="text-gray-500">Anon Key:</label>
+      <input id="sbKey" type="text" class="border rounded px-2 py-1 w-80 font-mono text-xs" placeholder="eyJhbGciOiJIUzI1NiIs...">
+      <button onclick="connect()" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs font-medium">Conectar</button>
+    </div>
+  </div>
+
+  <div id="status" class="hidden mb-4 p-3 rounded text-sm font-medium"></div>
+
+  <div id="connectedArea" class="hidden">
+    <div class="border-b border-gray-300 mb-4">
+      <button class="tab-btn active" data-tab="accounts" onclick="switchTab('accounts')">Email Accounts</button>
+      <button class="tab-btn" data-tab="notified" onclick="switchTab('notified')">Notified Emails</button>
+      <button class="tab-btn" data-tab="rules" onclick="switchTab('rules')">Filter Rules</button>
+    </div>
+
+    <div id="tab-accounts" class="tab-content">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-semibold text-gray-700">Contas de Email</h2>
+        <button onclick="openAccountModal()" class="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-sm font-medium">+ Nova Conta</button>
+      </div>
+      <div class="bg-white rounded-lg shadow overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+            <tr>
+              <th class="text-left px-4 py-3">Label</th>
+              <th class="text-left px-4 py-3">Email</th>
+              <th class="text-left px-4 py-3">IMAP</th>
+              <th class="text-center px-4 py-3">Status</th>
+              <th class="text-center px-4 py-3">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="accountsBody" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-notified" class="tab-content hidden">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-semibold text-gray-700">Emails Notificados</h2>
+        <input id="filterDate" type="date" class="border rounded px-2 py-1 text-sm" onchange="loadNotified()">
+      </div>
+      <div class="bg-white rounded-lg shadow overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+            <tr>
+              <th class="text-left px-4 py-3">Assunto</th>
+              <th class="text-left px-4 py-3">De</th>
+              <th class="text-left px-4 py-3">Conta</th>
+              <th class="text-left px-4 py-3">Regra</th>
+              <th class="text-left px-4 py-3">Notificado em</th>
+              <th class="text-center px-4 py-3">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="notifiedBody" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-rules" class="tab-content hidden">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-semibold text-gray-700">Regras de Filtro</h2>
+        <button onclick="openRuleModal()" class="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-sm font-medium">+ Nova Regra</button>
+      </div>
+      <div class="bg-white rounded-lg shadow overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+            <tr>
+              <th class="text-left px-4 py-3">Nome</th>
+              <th class="text-left px-4 py-3">Match From</th>
+              <th class="text-left px-4 py-3">Match Subject</th>
+              <th class="text-left px-4 py-3">Match Keyword</th>
+              <th class="text-center px-4 py-3">WhatsApp</th>
+              <th class="text-center px-4 py-3">Telegram</th>
+              <th class="text-center px-4 py-3">Status</th>
+              <th class="text-center px-4 py-3">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="rulesBody" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="notifiedModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50" onclick="if(event.target===this)closeNotifiedModal()">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
+    <div class="flex justify-between items-center p-4 border-b">
+      <h3 class="font-semibold text-lg text-gray-800">Detalhes do Email</h3>
+      <button onclick="closeNotifiedModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+    </div>
+    <div id="notifiedModalBody" class="p-4 space-y-3 text-sm"></div>
+  </div>
+</div>
+
+<div id="accountModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50" onclick="if(event.target===this)closeAccountModal()">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+    <div class="flex justify-between items-center p-4 border-b">
+      <h3 id="accountModalTitle" class="font-semibold text-lg text-gray-800">Nova Conta</h3>
+      <button onclick="closeAccountModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+    </div>
+    <form id="accountForm" class="p-4 space-y-3" onsubmit="saveAccount(event)">
+      <input id="accountId" type="hidden">
+      <div><label class="block text-xs font-medium text-gray-600 mb-1">Label</label><input id="accLabel" required class="w-full border rounded px-3 py-2 text-sm"></div>
+      <div><label class="block text-xs font-medium text-gray-600 mb-1">Email</label><input id="accEmail" type="email" required class="w-full border rounded px-3 py-2 text-sm"></div>
+      <div class="flex gap-2">
+        <div class="flex-1"><label class="block text-xs font-medium text-gray-600 mb-1">IMAP Host</label><input id="accHost" required class="w-full border rounded px-3 py-2 text-sm"></div>
+        <div class="w-24"><label class="block text-xs font-medium text-gray-600 mb-1">Porta</label><input id="accPort" type="number" value="993" class="w-full border rounded px-3 py-2 text-sm"></div>
+      </div>
+      <div><label class="block text-xs font-medium text-gray-600 mb-1">Senha</label><input id="accPassword" type="password" class="w-full border rounded px-3 py-2 text-sm" placeholder="Deixe em branco para manter"></div>
+      <div class="text-xs text-gray-400">A senha é encriptada via Edge Function antes de salvar.</div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeAccountModal()" class="px-4 py-2 text-sm border rounded hover:bg-gray-50">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="ruleModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50" onclick="if(event.target===this)closeRuleModal()">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+    <div class="flex justify-between items-center p-4 border-b">
+      <h3 id="ruleModalTitle" class="font-semibold text-lg text-gray-800">Nova Regra</h3>
+      <button onclick="closeRuleModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+    </div>
+    <form id="ruleForm" class="p-4 space-y-3" onsubmit="saveRule(event)">
+      <input id="ruleId" type="hidden">
+      <div><label class="block text-xs font-medium text-gray-600 mb-1">Nome</label><input id="ruleName" required class="w-full border rounded px-3 py-2 text-sm"></div>
+      <div><label class="block text-xs font-medium text-gray-600 mb-1">Match From</label><input id="ruleFrom" class="w-full border rounded px-3 py-2 text-sm" placeholder="Deixe vazio para ignorar"></div>
+      <div><label class="block text-xs font-medium text-gray-600 mb-1">Match Subject</label><input id="ruleSubject" class="w-full border rounded px-3 py-2 text-sm" placeholder="Deixe vazio para ignorar"></div>
+      <div><label class="block text-xs font-medium text-gray-600 mb-1">Match Keyword</label><input id="ruleKeyword" class="w-full border rounded px-3 py-2 text-sm" placeholder="Deixe vazio para ignorar"></div>
+      <div class="flex gap-4">
+        <label class="flex items-center gap-2 text-sm"><input id="ruleWa" type="checkbox" checked><span class="text-gray-700">Notificar WhatsApp</span></label>
+        <label class="flex items-center gap-2 text-sm"><input id="ruleTg" type="checkbox" checked><span class="text-gray-700">Notificar Telegram</span></label>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeRuleModal()" class="px-4 py-2 text-sm border rounded hover:bg-gray-50">Cancelar</button>
+        <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.tab-btn { padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; cursor: pointer; }
+.tab-btn:hover { color: #374151; }
+.tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+.badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+.badge-green { background: #d1fae5; color: #065f46; }
+.badge-yellow { background: #fef3c7; color: #92400e; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.badge-gray { background: #f3f4f6; color: #374151; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.btn-icon { padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; cursor: pointer; border: 1px solid #e5e7eb; background: white; }
+.btn-icon:hover { background: #f9fafb; }
+</style>
+
+<script>
+let sb = null;
+
+function connect() {
+  const url = document.getElementById('sbUrl').value.trim();
+  const key = document.getElementById('sbKey').value.trim();
+  if (!url || !key) return showStatus('Preencha SUPABASE_URL e Anon Key.', 'red');
+  try { sb = window.supabase.createClient(url, key); } catch(e) { return showStatus('Erro ao criar cliente: '+e.message, 'red'); }
+  document.getElementById('connectedArea').classList.remove('hidden');
+  showStatus('Conectado ao Supabase!', 'green');
+  loadAccounts();
+  loadNotified();
+  loadRules();
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+  el.textContent = msg;
+  el.classList.add(type==='green'?'bg-green-100 text-green-800':'bg-red-100 text-red-800');
+  if (type==='green') setTimeout(()=>el.classList.add('hidden'), 3000);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('hidden',c.id!=='tab-'+tab));
+}
+
+function timeAgo(d) {
+  const s = Math.floor((Date.now()-new Date(d))/1000);
+  if (s<60) return 'agora';
+  const m = Math.floor(s/60); if (m<60) return m+'min atrás';
+  const h = Math.floor(m/60); if (h<24) return h+'h atrás';
+  const day = Math.floor(h/24); return day+'d atrás';
+}
+
+// ========== ACCOUNTS ==========
+
+async function loadAccounts() {
+  const { data, error } = await sb.from('email_accounts').select('*').order('created_at', { ascending: false });
+  if (error) return showStatus('Erro ao carregar contas: '+error.message, 'red');
+  const tbody = document.getElementById('accountsBody');
+  tbody.innerHTML = data.map(a => `<tr>
+    <td class="px-4 py-3 font-medium text-gray-800">${esc(a.label)}</td>
+    <td class="px-4 py-3 text-gray-600">${esc(a.email)}</td>
+    <td class="px-4 py-3 text-gray-500 font-mono text-xs">${esc(a.imap_host)}:${a.imap_port}</td>
+    <td class="px-4 py-3 text-center">${a.active ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge badge-red">Inativo</span>'}</td>
+    <td class="px-4 py-3 text-center">
+      <button class="btn-icon" onclick="openAccountModal('${a.id}')">Editar</button>
+      <button class="btn-icon" onclick="toggleActive('${a.id}',${a.active})">${a.active?'Desativar':'Ativar'}</button>
+    </td>
+  </tr>`).join('');
+}
+
+async function toggleActive(id, current) {
+  const { error } = await sb.from('email_accounts').update({ active: !current }).eq('id', id);
+  if (error) return showStatus('Erro: '+error.message, 'red');
+  loadAccounts();
+}
+
+async function openAccountModal(id) {
+  document.getElementById('accountForm').reset();
+  document.getElementById('accountId').value = '';
+  document.getElementById('accPassword').required = false;
+  document.getElementById('accountModalTitle').textContent = 'Nova Conta';
+  if (id) {
+    const { data } = await sb.from('email_accounts').select('*').eq('id', id).single();
+    if (data) {
+      document.getElementById('accountModalTitle').textContent = 'Editar Conta';
+      document.getElementById('accountId').value = data.id;
+      document.getElementById('accLabel').value = data.label;
+      document.getElementById('accEmail').value = data.email;
+      document.getElementById('accHost').value = data.imap_host;
+      document.getElementById('accPort').value = data.imap_port;
+      document.getElementById('accPassword').placeholder = 'Deixe em branco para manter';
+    }
+  }
+  document.getElementById('accountModal').classList.remove('hidden');
+  document.getElementById('accountModal').classList.add('flex');
+}
+
+function closeAccountModal() {
+  document.getElementById('accountModal').classList.add('hidden');
+  document.getElementById('accountModal').classList.remove('flex');
+}
+
+async function saveAccount(e) {
+  e.preventDefault();
+  const id = document.getElementById('accountId').value;
+  const payload = {
+    label: document.getElementById('accLabel').value.trim(),
+    email: document.getElementById('accEmail').value.trim(),
+    imap_host: document.getElementById('accHost').value.trim(),
+    imap_port: parseInt(document.getElementById('accPort').value) || 993,
+  };
+  const password = document.getElementById('accPassword').value;
+  if (password) {
+    const encUrl = document.getElementById('sbUrl').value.trim().replace(/\/+$/,'')+'/functions/v1/encrypt-password';
+    try {
+      const r = await fetch(encUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password}) });
+      if (!r.ok) throw new Error('Erro na encriptação');
+      const enc = await r.json();
+      payload.password = null;
+      payload.password_cipher = enc.password_cipher;
+      payload.password_iv = enc.password_iv;
+    } catch(err) {
+      return showStatus('Erro ao encriptar senha: '+err.message, 'red');
+    }
+  }
+  const { error } = id
+    ? await sb.from('email_accounts').update(payload).eq('id', id)
+    : await sb.from('email_accounts').insert(payload);
+  if (error) return showStatus('Erro ao salvar: '+error.message, 'red');
+  closeAccountModal();
+  loadAccounts();
+  showStatus('Conta salva!', 'green');
+}
+
+// ========== NOTIFIED ==========
+
+async function loadNotified() {
+  const filterDate = document.getElementById('filterDate').value;
+  let query = sb.from('notified_emails').select('*, email_accounts(label, email)').order('notified_at', { ascending: false }).limit(200);
+  if (filterDate) {
+    const start = filterDate+'T00:00:00Z';
+    const end = filterDate+'T23:59:59Z';
+    query = query.gte('notified_at', start).lte('notified_at', end);
+  }
+  const { data, error } = await query;
+  if (error) return showStatus('Erro: '+error.message, 'red');
+  const tbody = document.getElementById('notifiedBody');
+  tbody.innerHTML = (data||[]).map(n => {
+    const rule = n.matched_rule || 'Apenas registrado';
+    const ruleBadge = n.matched_rule ? 'badge-green' : 'badge-yellow';
+    const ruleText = n.matched_rule || 'sem match';
+    const accountLabel = n.email_accounts?.label || n.account_id?.slice(0,8) || '-';
+    return `<tr class="cursor-pointer hover:bg-gray-50" onclick="openNotifiedModal('${n.id}')">
+      <td class="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">${esc(n.subject||'(sem assunto)')}</td>
+      <td class="px-4 py-3 text-gray-600 max-w-[10rem] truncate">${esc(n.from_address||'-')}</td>
+      <td class="px-4 py-3 text-gray-500">${esc(accountLabel)}</td>
+      <td class="px-4 py-3"><span class="badge ${ruleBadge}">${esc(ruleText)}</span></td>
+      <td class="px-4 py-3 text-gray-400 text-xs whitespace-nowrap" title="${n.notified_at}">${timeAgo(n.notified_at)}</td>
+      <td class="px-4 py-3 text-center"><button class="btn-icon" onclick="event.stopPropagation();openNotifiedModal('${n.id}')">Detalhes</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function openNotifiedModal(id) {
+  const { data, error } = await sb.from('notified_emails').select('*, email_accounts(label, email)').eq('id', id).single();
+  if (error||!data) return;
+  const n = data;
+  const ruleBadge = n.matched_rule ? 'badge-green' : 'badge-yellow';
+  const ruleLabel = n.matched_rule ? `Notificado via "${n.matched_rule}"` : 'Apenas registrado (sem regra)';
+  const accountLabel = n.email_accounts?.label || '-';
+  const accountEmail = n.email_accounts?.email || '-';
+  document.getElementById('notifiedModalBody').innerHTML = `
+    <div><span class="text-xs text-gray-400 uppercase font-medium">Assunto</span><p class="text-gray-800 font-medium">${esc(n.subject||'(sem assunto)')}</p></div>
+    <div><span class="text-xs text-gray-400 uppercase font-medium">De</span><p class="text-gray-800">${esc(n.from_address||'-')}</p></div>
+    <div><span class="text-xs text-gray-400 uppercase font-medium">Conta</span><p class="text-gray-800">${esc(accountLabel)} <span class="text-gray-400">(${esc(accountEmail)})</span></p></div>
+    <div><span class="text-xs text-gray-400 uppercase font-medium">Regra</span><p><span class="badge ${ruleBadge}">${esc(ruleLabel)}</span></p></div>
+    <div><span class="text-xs text-gray-400 uppercase font-medium">Notificado em</span><p class="text-gray-800" title="${n.notified_at}">${new Date(n.notified_at).toLocaleString('pt-BR')} (${timeAgo(n.notified_at)})</p></div>
+    <div><span class="text-xs text-gray-400 uppercase font-medium">Message ID</span>
+      <div class="flex items-center gap-2 mt-1"><code class="text-xs bg-gray-100 px-2 py-1 rounded break-all flex-1">${esc(n.message_id)}</code>
+      <button onclick="navigator.clipboard.writeText('${esc(n.message_id)}')" class="btn-icon text-xs">Copiar</button></div>
+    </div>`;
+  document.getElementById('notifiedModal').classList.remove('hidden');
+  document.getElementById('notifiedModal').classList.add('flex');
+}
+
+function closeNotifiedModal() {
+  document.getElementById('notifiedModal').classList.add('hidden');
+  document.getElementById('notifiedModal').classList.remove('flex');
+}
+
+// ========== RULES ==========
+
+async function loadRules() {
+  const { data, error } = await sb.from('filter_rules').select('*').order('created_at', { ascending: false });
+  if (error) return showStatus('Erro: '+error.message, 'red');
+  const tbody = document.getElementById('rulesBody');
+  tbody.innerHTML = data.map(r => `<tr>
+    <td class="px-4 py-3 font-medium text-gray-800">${esc(r.name)}</td>
+    <td class="px-4 py-3 text-gray-500 font-mono text-xs">${esc(r.match_from||'-')}</td>
+    <td class="px-4 py-3 text-gray-500 font-mono text-xs">${esc(r.match_subject||'-')}</td>
+    <td class="px-4 py-3 text-gray-500 font-mono text-xs">${esc(r.match_keyword||'-')}</td>
+    <td class="px-4 py-3 text-center">${r.notify_whatsapp ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
+    <td class="px-4 py-3 text-center">${r.notify_telegram ? '<span class="badge badge-blue">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
+    <td class="px-4 py-3 text-center">${r.active ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge badge-red">Inativo</span>'}</td>
+    <td class="px-4 py-3 text-center">
+      <button class="btn-icon" onclick="openRuleModal('${r.id}')">Editar</button>
+      <button class="btn-icon" onclick="deleteRule('${r.id}')" style="color:#dc2626">Excluir</button>
+    </td>
+  </tr>`).join('');
+}
+
+function openRuleModal(id) {
+  document.getElementById('ruleForm').reset();
+  document.getElementById('ruleId').value = '';
+  document.getElementById('ruleModalTitle').textContent = 'Nova Regra';
+  document.getElementById('ruleWa').checked = true;
+  document.getElementById('ruleTg').checked = true;
+  if (id) {
+    sb.from('filter_rules').select('*').eq('id', id).single().then(({data}) => {
+      if (!data) return;
+      document.getElementById('ruleModalTitle').textContent = 'Editar Regra';
+      document.getElementById('ruleId').value = data.id;
+      document.getElementById('ruleName').value = data.name;
+      document.getElementById('ruleFrom').value = data.match_from||'';
+      document.getElementById('ruleSubject').value = data.match_subject||'';
+      document.getElementById('ruleKeyword').value = data.match_keyword||'';
+      document.getElementById('ruleWa').checked = data.notify_whatsapp;
+      document.getElementById('ruleTg').checked = data.notify_telegram;
+    });
+  }
+  document.getElementById('ruleModal').classList.remove('hidden');
+  document.getElementById('ruleModal').classList.add('flex');
+}
+
+function closeRuleModal() {
+  document.getElementById('ruleModal').classList.add('hidden');
+  document.getElementById('ruleModal').classList.remove('flex');
+}
+
+async function saveRule(e) {
+  e.preventDefault();
+  const id = document.getElementById('ruleId').value;
+  const payload = {
+    name: document.getElementById('ruleName').value.trim(),
+    match_from: document.getElementById('ruleFrom').value.trim()||null,
+    match_subject: document.getElementById('ruleSubject').value.trim()||null,
+    match_keyword: document.getElementById('ruleKeyword').value.trim()||null,
+    notify_whatsapp: document.getElementById('ruleWa').checked,
+    notify_telegram: document.getElementById('ruleTg').checked,
+    active: true,
+  };
+  const { error } = id
+    ? await sb.from('filter_rules').update(payload).eq('id', id)
+    : await sb.from('filter_rules').insert(payload);
+  if (error) return showStatus('Erro ao salvar: '+error.message, 'red');
+  closeRuleModal();
+  loadRules();
+  showStatus('Regra salva!', 'green');
+}
+
+async function deleteRule(id) {
+  if (!confirm('Excluir esta regra permanentemente?')) return;
+  const { error } = await sb.from('filter_rules').delete().eq('id', id);
+  if (error) return showStatus('Erro: '+error.message, 'red');
+  loadRules();
+  showStatus('Regra excluída.', 'green');
+}
+
+function esc(s) {
+  if (s==null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
