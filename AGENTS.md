@@ -86,6 +86,34 @@ Examples:
 - `src/node/scheduler.ts` — creates Supabase client, calls `runSchedulerTick()`, sets `setInterval`
 - `supabase/functions/scan-scheduler/index.ts` — wraps `runSchedulerTick()` in `Deno.serve` with CORS
 
+## Database Schema
+
+| Tabela | Descrição |
+|--------|-----------|
+| `email_accounts` | Contas IMAP (host, porta, email, senha encriptada) |
+| `filter_rules` | Regras de filtro (match_from, match_subject, match_keyword, notify_whatsapp, notify_telegram) |
+| `notified_emails` | Log de notificações enviados (account_id, message_id, subject, from_address, matched_rule) |
+| `scan_schedules` | Agendamentos dinâmicos (cron_expression, source: supabase/github/both) |
+
+## Core Modules (`_shared/`)
+
+- **`scanner.ts`** — Orchestrator com dois modos: `scanWithRules()` (usa `filter_rules` do DB) e `scanWithFilters()` (filtros ad-hoc via requisição). Ambos iteram contas ativas, buscam emails novos, matcheam regras e enviam notificações.
+- **`scheduler.ts`** — Lê a tabela `scan_schedules`, avalia `cronMatches()` contra o horário atual, e dispara scans via Supabase Edge Function (`POST /functions/v1/scan-emails`) ou GitHub Actions dispatch.
+- **`crypto.ts`** — AES-256-GCM encrypt/decrypt. `encrypt(plaintext, key)` → `{ ciphertext, iv }`, `decrypt(ciphertext, iv, key)` → `plaintext`. A chave deve ter 32 bytes (base64).
+- **`filter.ts`** — `matchesRule(email, rule)` compara `from`, `subject` e body do email contra os padrões da regra (case-insensitive).
+- **`imap.ts`** — `fetchNewEmails(account, sinceMinutes)` conecta via IMAP, baixa emails não vistos dos últimos N minutos, decripta senha se necessário.
+- **`formatter.ts`** — `formatMessage(email, account, rule)` → `{ plain, html }` com template para notificação.
+- **`supabase.ts`** — Cliente Supabase: `getActiveAccounts`, `getActiveRules`, `isAlreadyNotified`, `registerNotification`.
+- **`notifiers/telegram.ts`** — `sendTelegram(message, botToken, chatId)` via Telegram Bot API.
+- **`notifiers/whatsapp.ts`** — `sendWhatsApp(message, instanceId, token, phone)` via Z-API.
+
+## Security
+
+- **IMAP passwords**: encriptadas com AES-256-GCM (`crypto.ts`). A `EMAIL_ENCRYPTION_KEY` (32 bytes base64) é necessária em todos os runtimes.
+- **`CRON_SECRET`**: se configurado, a Edge Function `scan-emails` rejeita requests sem `Authorization: Bearer <CRON_SECRET>`.
+- **Telegram webhook**: valida `X-Telegram-Bot-Api-Secret-Token` contra `TELEGRAM_SECRET_TOKEN`. Opcionalmente restringe chats com `TELEGRAM_ALLOWED_CHAT_IDS`.
+- **Edge Function `encrypt-password`**: recebe `{ password }`, retorna `{ password_cipher, password_iv }`. Usado pelo dashboard para encriptar senhas antes de salvar.
+
 ## Conventions
 
 - **TypeScript:** strict mode, ES2022 target, noEmit, ESNext modules

@@ -6,7 +6,7 @@
   "scripts": {
     "scan": "tsx src/node/scan.ts",
     "scan:build": "tsx src/node/scan.ts",
-    "serve": "tsx src/node/server.ts",
+    "start": "tsx src/node/server.ts",
     "scheduler": "tsx src/node/scheduler.ts"
   },
   "dependencies": {
