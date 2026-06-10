@@ -7,16 +7,38 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans">
+<body class="bg-gray-950 min-h-screen font-sans text-gray-200">
 
 <div id="app" class="max-w-7xl mx-auto p-4">
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Email Bot Dashboard</h1>
-    <div class="flex items-center gap-2 text-sm">
-      <label class="text-gray-500">Supabase URL:</label>
-      <input id="sbUrl" type="text" class="border rounded px-2 py-1 w-64 font-mono text-xs" placeholder="https://project.supabase.co">
-      <label class="text-gray-500">Anon Key:</label>
-      <input id="sbKey" type="text" class="border rounded px-2 py-1 w-80 font-mono text-xs" placeholder="eyJhbGciOiJIUzI1NiIs...">
+    <h1 class="text-xl font-bold text-gray-100">Email Bot Dashboard</h1>
+    <div class="flex items-center gap-2 text-sm flex-wrap">
+      <label class="text-gray-400 text-xs flex items-center gap-0.5">
+        Supabase URL:
+        <span class="info-trigger">
+          <span class="info-icon">i</span>
+          <div class="info-popup">
+            <strong>Supabase URL</strong>
+            <p>URL do teu projeto no Supabase.</p>
+            <p class="mt-1"><strong>Onde encontrar:</strong> Settings &gt; API &gt; Project URL</p>
+            <p class="mt-1"><strong>Exemplo:</strong> https://seuproject.supabase.co</p>
+          </div>
+        </span>
+      </label>
+      <input id="sbUrl" type="text" class="border border-gray-700 rounded px-2 py-1 w-64 font-mono text-xs bg-gray-800 text-gray-200 placeholder-gray-500" placeholder="https://project.supabase.co">
+      <label class="text-gray-400 text-xs flex items-center gap-0.5">
+        Anon Key:
+        <span class="info-trigger">
+          <span class="info-icon">i</span>
+          <div class="info-popup">
+            <strong>Anon Key</strong>
+            <p>Chave anónima/pública do Supabase (não é segredo).</p>
+            <p class="mt-1"><strong>Onde encontrar:</strong> Settings &gt; API &gt; anon public</p>
+            <p class="mt-1"><strong>Exemplo:</strong> eyJhbGciOiJIUzI1NiIs...</p>
+          </div>
+        </span>
+      </label>
+      <input id="sbKey" type="text" class="border border-gray-700 rounded px-2 py-1 w-80 font-mono text-xs bg-gray-800 text-gray-200 placeholder-gray-500" placeholder="eyJhbGciOiJIUzI1NiIs...">
       <button onclick="connect()" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs font-medium">Conectar</button>
     </div>
   </div>
@@ -24,7 +46,7 @@
   <div id="status" class="hidden mb-4 p-3 rounded text-sm font-medium"></div>
 
   <div id="connectedArea" class="hidden">
-    <div class="border-b border-gray-300 mb-4">
+    <div class="border-b border-gray-800 mb-4">
       <button class="tab-btn active" data-tab="accounts" onclick="switchTab('accounts')">Email Accounts</button>
       <button class="tab-btn" data-tab="notified" onclick="switchTab('notified')">Notified Emails</button>
       <button class="tab-btn" data-tab="rules" onclick="switchTab('rules')">Filter Rules</button>
@@ -32,12 +54,12 @@
 
     <div id="tab-accounts" class="tab-content">
       <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-semibold text-gray-700">Contas de Email</h2>
+        <h2 class="text-lg font-semibold text-gray-200">Contas de Email</h2>
         <button onclick="openAccountModal()" class="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-sm font-medium">+ Nova Conta</button>
       </div>
-      <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <div class="bg-gray-900 rounded-lg shadow overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+          <thead class="bg-gray-800 text-gray-400 uppercase text-xs">
             <tr>
               <th class="text-left px-4 py-3">Label</th>
               <th class="text-left px-4 py-3">Email</th>
@@ -46,19 +68,19 @@
               <th class="text-center px-4 py-3">Ações</th>
             </tr>
           </thead>
-          <tbody id="accountsBody" class="divide-y divide-gray-100"></tbody>
+          <tbody id="accountsBody" class="divide-y divide-gray-800"></tbody>
         </table>
       </div>
     </div>
 
     <div id="tab-notified" class="tab-content hidden">
       <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-semibold text-gray-700">Emails Notificados</h2>
-        <input id="filterDate" type="date" class="border rounded px-2 py-1 text-sm" onchange="loadNotified()">
+        <h2 class="text-lg font-semibold text-gray-200">Emails Notificados</h2>
+        <input id="filterDate" type="date" class="border border-gray-700 rounded px-2 py-1 text-sm bg-gray-800 text-gray-200" onchange="loadNotified()">
       </div>
-      <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <div class="bg-gray-900 rounded-lg shadow overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+          <thead class="bg-gray-800 text-gray-400 uppercase text-xs">
             <tr>
               <th class="text-left px-4 py-3">Assunto</th>
               <th class="text-left px-4 py-3">De</th>
@@ -68,19 +90,19 @@
               <th class="text-center px-4 py-3">Ações</th>
             </tr>
           </thead>
-          <tbody id="notifiedBody" class="divide-y divide-gray-100"></tbody>
+          <tbody id="notifiedBody" class="divide-y divide-gray-800"></tbody>
         </table>
       </div>
     </div>
 
     <div id="tab-rules" class="tab-content hidden">
       <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-semibold text-gray-700">Regras de Filtro</h2>
+        <h2 class="text-lg font-semibold text-gray-200">Regras de Filtro</h2>
         <button onclick="openRuleModal()" class="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-sm font-medium">+ Nova Regra</button>
       </div>
-      <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <div class="bg-gray-900 rounded-lg shadow overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+          <thead class="bg-gray-800 text-gray-400 uppercase text-xs">
             <tr>
               <th class="text-left px-4 py-3">Nome</th>
               <th class="text-left px-4 py-3">Match From</th>
@@ -92,65 +114,177 @@
               <th class="text-center px-4 py-3">Ações</th>
             </tr>
           </thead>
-          <tbody id="rulesBody" class="divide-y divide-gray-100"></tbody>
+          <tbody id="rulesBody" class="divide-y divide-gray-800"></tbody>
         </table>
       </div>
     </div>
   </div>
 </div>
 
-<div id="notifiedModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50" onclick="if(event.target===this)closeNotifiedModal()">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
-    <div class="flex justify-between items-center p-4 border-b">
-      <h3 class="font-semibold text-lg text-gray-800">Detalhes do Email</h3>
-      <button onclick="closeNotifiedModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+<div id="notifiedModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50" onclick="if(event.target===this)closeNotifiedModal()">
+  <div class="bg-gray-900 rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
+    <div class="flex justify-between items-center p-4 border-b border-gray-800">
+      <h3 class="font-semibold text-lg text-gray-100">Detalhes do Email</h3>
+      <button onclick="closeNotifiedModal()" class="text-gray-500 hover:text-gray-300 text-xl leading-none">&times;</button>
     </div>
     <div id="notifiedModalBody" class="p-4 space-y-3 text-sm"></div>
   </div>
 </div>
 
-<div id="accountModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50" onclick="if(event.target===this)closeAccountModal()">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-    <div class="flex justify-between items-center p-4 border-b">
-      <h3 id="accountModalTitle" class="font-semibold text-lg text-gray-800">Nova Conta</h3>
-      <button onclick="closeAccountModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+<div id="accountModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50" onclick="if(event.target===this)closeAccountModal()">
+  <div class="bg-gray-900 rounded-lg shadow-xl w-full max-w-md mx-4">
+    <div class="flex justify-between items-center p-4 border-b border-gray-800">
+      <h3 id="accountModalTitle" class="font-semibold text-lg text-gray-100">Nova Conta</h3>
+      <button onclick="closeAccountModal()" class="text-gray-500 hover:text-gray-300 text-xl leading-none">&times;</button>
     </div>
     <form id="accountForm" class="p-4 space-y-3" onsubmit="saveAccount(event)">
       <input id="accountId" type="hidden">
-      <div><label class="block text-xs font-medium text-gray-600 mb-1">Label</label><input id="accLabel" required class="w-full border rounded px-3 py-2 text-sm"></div>
-      <div><label class="block text-xs font-medium text-gray-600 mb-1">Email</label><input id="accEmail" type="email" required class="w-full border rounded px-3 py-2 text-sm"></div>
-      <div class="flex gap-2">
-        <div class="flex-1"><label class="block text-xs font-medium text-gray-600 mb-1">IMAP Host</label><input id="accHost" required class="w-full border rounded px-3 py-2 text-sm"></div>
-        <div class="w-24"><label class="block text-xs font-medium text-gray-600 mb-1">Porta</label><input id="accPort" type="number" value="993" class="w-full border rounded px-3 py-2 text-sm"></div>
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Label</label>
+        <input id="accLabel" required class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500">
       </div>
-      <div><label class="block text-xs font-medium text-gray-600 mb-1">Senha</label><input id="accPassword" type="password" class="w-full border rounded px-3 py-2 text-sm" placeholder="Deixe em branco para manter"></div>
-      <div class="text-xs text-gray-400">A senha é encriptada via Edge Function antes de salvar.</div>
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Email</label>
+        <input id="accEmail" type="email" required class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500">
+      </div>
+      <div class="flex gap-2">
+        <div class="flex-1">
+          <label class="block text-xs font-medium text-gray-400 mb-1 flex items-center gap-0.5">
+            IMAP Host
+            <span class="info-trigger">
+              <span class="info-icon">i</span>
+              <div class="info-popup">
+                <strong>IMAP Host</strong>
+                <p>Servidor de entrada (IMAP) do teu provedor de email.</p>
+                <p class="mt-1"><strong>Exemplos:</strong></p>
+                <ul>
+                  <li><strong>Gmail:</strong> imap.gmail.com</li>
+                  <li><strong>Outlook:</strong> outlook.office365.com</li>
+                  <li><strong>Yahoo:</strong> imap.mail.yahoo.com</li>
+                  <li><strong>Outros:</strong> verifica no site do teu email</li>
+                </ul>
+              </div>
+            </span>
+          </label>
+          <input id="accHost" required class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500" placeholder="ex: imap.gmail.com">
+        </div>
+        <div class="w-24">
+          <label class="block text-xs font-medium text-gray-400 mb-1 flex items-center gap-0.5">
+            Porta
+            <span class="info-trigger">
+              <span class="info-icon">i</span>
+              <div class="info-popup">
+                <strong>Porta</strong>
+                <p>Porta de ligação do servidor IMAP.</p>
+                <p class="mt-1"><strong>Padrões:</strong></p>
+                <ul>
+                  <li><strong>993</strong> — IMAP com SSL (recomendado)</li>
+                  <li><strong>143</strong> — IMAP com STARTTLS</li>
+                </ul>
+                <p class="mt-1">Usa 993 salvo instrução em contrário.</p>
+              </div>
+            </span>
+          </label>
+          <input id="accPort" type="number" value="993" class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Senha</label>
+        <input id="accPassword" type="password" class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500" placeholder="Deixe em branco para manter">
+      </div>
+      <div class="text-xs text-gray-500">A senha é encriptada via Edge Function antes de salvar.</div>
       <div class="flex justify-end gap-2 pt-2">
-        <button type="button" onclick="closeAccountModal()" class="px-4 py-2 text-sm border rounded hover:bg-gray-50">Cancelar</button>
+        <button type="button" onclick="closeAccountModal()" class="px-4 py-2 text-sm border border-gray-700 rounded hover:bg-gray-700 text-gray-300">Cancelar</button>
         <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Salvar</button>
       </div>
     </form>
   </div>
 </div>
 
-<div id="ruleModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50" onclick="if(event.target===this)closeRuleModal()">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-    <div class="flex justify-between items-center p-4 border-b">
-      <h3 id="ruleModalTitle" class="font-semibold text-lg text-gray-800">Nova Regra</h3>
-      <button onclick="closeRuleModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+<div id="ruleModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50" onclick="if(event.target===this)closeRuleModal()">
+  <div class="bg-gray-900 rounded-lg shadow-xl w-full max-w-md mx-4">
+    <div class="flex justify-between items-center p-4 border-b border-gray-800">
+      <h3 id="ruleModalTitle" class="font-semibold text-lg text-gray-100">Nova Regra</h3>
+      <button onclick="closeRuleModal()" class="text-gray-500 hover:text-gray-300 text-xl leading-none">&times;</button>
     </div>
     <form id="ruleForm" class="p-4 space-y-3" onsubmit="saveRule(event)">
       <input id="ruleId" type="hidden">
-      <div><label class="block text-xs font-medium text-gray-600 mb-1">Nome</label><input id="ruleName" required class="w-full border rounded px-3 py-2 text-sm"></div>
-      <div><label class="block text-xs font-medium text-gray-600 mb-1">Match From</label><input id="ruleFrom" class="w-full border rounded px-3 py-2 text-sm" placeholder="Deixe vazio para ignorar"></div>
-      <div><label class="block text-xs font-medium text-gray-600 mb-1">Match Subject</label><input id="ruleSubject" class="w-full border rounded px-3 py-2 text-sm" placeholder="Deixe vazio para ignorar"></div>
-      <div><label class="block text-xs font-medium text-gray-600 mb-1">Match Keyword</label><input id="ruleKeyword" class="w-full border rounded px-3 py-2 text-sm" placeholder="Deixe vazio para ignorar"></div>
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1">Nome</label>
+        <input id="ruleName" required class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500">
+      </div>
+
+      <p class="text-xs text-gray-500 italic">Se preencheres mais que um critério, todos têm de coincidir (AND).</p>
+
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1 flex items-center gap-0.5">
+          Match From
+          <span class="info-trigger">
+            <span class="info-icon">i</span>
+            <div class="info-popup">
+              <strong>Match From</strong>
+              <p>Filtra pelo <strong>remetente</strong> do email (endereço ou nome).</p>
+              <p class="mt-1">Aceita <strong>texto parcial</strong> — se o remetente contiver este texto, a regra coincide.</p>
+              <p class="mt-1"><strong>Exemplos:</strong></p>
+              <ul>
+                <li><strong>@gmail.com</strong> → todos os Gmail</li>
+                <li><strong>fatura</strong> → qualquer remetente com "fatura"</li>
+                <li><strong>contato@</strong> emails deste domínio</li>
+              </ul>
+              <p class="mt-1">Deixa vazio para ignorar este critério.</p>
+            </div>
+          </span>
+        </label>
+        <input id="ruleFrom" class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500" placeholder="Ex: @gmail.com, fatura">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1 flex items-center gap-0.5">
+          Match Subject
+          <span class="info-trigger">
+            <span class="info-icon">i</span>
+            <div class="info-popup">
+              <strong>Match Subject</strong>
+              <p>Filtra pelo <strong>assunto</strong> do email.</p>
+              <p class="mt-1">Aceita <strong>texto parcial</strong> — se o assunto contiver este texto, a regra coincide.</p>
+              <p class="mt-1"><strong>Exemplos:</strong></p>
+              <ul>
+                <li><strong>[URGENTE]</strong> → assuntos com este marcador</li>
+                <li><strong>NF-</strong> → notas fiscais</li>
+                <li><strong>relatório</strong> → relatórios mensais</li>
+              </ul>
+              <p class="mt-1">Deixa vazio para ignorar este critério.</p>
+            </div>
+          </span>
+        </label>
+        <input id="ruleSubject" class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500" placeholder="Ex: [URGENTE], NF-, relatório">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-400 mb-1 flex items-center gap-0.5">
+          Match Keyword
+          <span class="info-trigger">
+            <span class="info-icon">i</span>
+            <div class="info-popup">
+              <strong>Match Keyword</strong>
+              <p>Filtra pelo <strong>corpo da mensagem</strong> (conteúdo do email).</p>
+              <p class="mt-1">Aceita <strong>texto parcial</strong> — se o corpo contiver este texto, a regra coincide.</p>
+              <p class="mt-1"><strong>Exemplos:</strong></p>
+              <ul>
+                <li><strong>pendente</strong> → mensagens com "pendente"</li>
+                <li><strong>confirmação</strong> → confirmações</li>
+                <li><strong>#ticket</strong> → chamados de suporte</li>
+              </ul>
+              <p class="mt-1">Deixa vazio para ignorar este critério.</p>
+            </div>
+          </span>
+        </label>
+        <input id="ruleKeyword" class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500" placeholder="Ex: pendente, confirmação">
+      </div>
       <div class="flex gap-4">
-        <label class="flex items-center gap-2 text-sm"><input id="ruleWa" type="checkbox" checked><span class="text-gray-700">Notificar WhatsApp</span></label>
-        <label class="flex items-center gap-2 text-sm"><input id="ruleTg" type="checkbox" checked><span class="text-gray-700">Notificar Telegram</span></label>
+        <label class="flex items-center gap-2 text-sm"><input id="ruleWa" type="checkbox" checked class="accent-blue-500"><span class="text-gray-300">Notificar WhatsApp</span></label>
+        <label class="flex items-center gap-2 text-sm"><input id="ruleTg" type="checkbox" checked class="accent-blue-500"><span class="text-gray-300">Notificar Telegram</span></label>
       </div>
       <div class="flex justify-end gap-2 pt-2">
-        <button type="button" onclick="closeRuleModal()" class="px-4 py-2 text-sm border rounded hover:bg-gray-50">Cancelar</button>
+        <button type="button" onclick="closeRuleModal()" class="px-4 py-2 text-sm border border-gray-700 rounded hover:bg-gray-700 text-gray-300">Cancelar</button>
         <button type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Salvar</button>
       </div>
     </form>
@@ -158,21 +292,130 @@
 </div>
 
 <style>
-.tab-btn { padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; cursor: pointer; }
-.tab-btn:hover { color: #374151; }
-.tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+/* ===== Tab Buttons ===== */
+.tab-btn { padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: #9ca3af; border-bottom: 2px solid transparent; cursor: pointer; }
+.tab-btn:hover { color: #e5e7eb; }
+.tab-btn.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+
+/* ===== Badges ===== */
 .badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
-.badge-green { background: #d1fae5; color: #065f46; }
-.badge-yellow { background: #fef3c7; color: #92400e; }
-.badge-red { background: #fee2e2; color: #991b1b; }
-.badge-gray { background: #f3f4f6; color: #374151; }
-.badge-blue { background: #dbeafe; color: #1e40af; }
-.btn-icon { padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; cursor: pointer; border: 1px solid #e5e7eb; background: white; }
-.btn-icon:hover { background: #f9fafb; }
+.badge-green { background: rgba(6,95,70,0.35); color: #6ee7b7; }
+.badge-yellow { background: rgba(146,64,14,0.35); color: #fcd34d; }
+.badge-red { background: rgba(153,27,27,0.35); color: #fca5a5; }
+.badge-gray { background: #374151; color: #d1d5db; }
+.badge-blue { background: rgba(30,64,175,0.35); color: #93c5fd; }
+
+/* ===== Icon Button ===== */
+.btn-icon { padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; cursor: pointer; border: 1px solid #4b5563; background: #374151; color: #d1d5db; }
+.btn-icon:hover { background: #4b5563; }
+
+/* ===== Info Tooltip ===== */
+.info-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+
+.info-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4b5563;
+  color: #9ca3af;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-style: italic;
+  font-family: serif;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+  line-height: 1;
+}
+
+.info-trigger:hover .info-icon,
+.info-trigger.active .info-icon {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.info-popup {
+  display: none;
+  position: fixed;
+  min-width: 240px;
+  max-width: 300px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #1f2937;
+  border: 1px solid #4b5563;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  font-size: 12px;
+  color: #d1d5db;
+  line-height: 1.5;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.info-popup strong { display: block; color: #f3f4f6; margin-bottom: 4px; font-size: 13px; }
+.info-popup ul { margin: 4px 0 0; padding-left: 18px; }
+.info-popup li { margin-bottom: 2px; }
+.info-popup .mt-1 { margin-top: 6px; }
+.info-popup code { background: #374151; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+
+/* Arrow down (popup above trigger) */
+.info-popup.arrow-down::before,
+.info-popup.arrow-down::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+}
+.info-popup.arrow-down::before {
+  bottom: -14px;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid #4b5563;
+}
+.info-popup.arrow-down::after {
+  bottom: -12px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #1f2937;
+}
+
+/* Arrow up (popup below trigger) */
+.info-popup.arrow-up::before,
+.info-popup.arrow-up::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+}
+.info-popup.arrow-up::before {
+  top: -14px;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid #4b5563;
+}
+.info-popup.arrow-up::after {
+  top: -12px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #1f2937;
+}
 </style>
 
 <script>
 let sb = null;
+let hidePopupTimer = null;
 
 function connect() {
   const url = document.getElementById('sbUrl').value.trim();
@@ -188,9 +431,9 @@ function connect() {
 
 function showStatus(msg, type) {
   const el = document.getElementById('status');
-  el.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+  el.classList.remove('hidden', 'bg-green-900/40', 'text-green-400', 'bg-red-900/40', 'text-red-400');
   el.textContent = msg;
-  el.classList.add(type==='green'?'bg-green-100 text-green-800':'bg-red-100 text-red-800');
+  el.classList.add(type==='green'?'bg-green-900/40 text-green-400':'bg-red-900/40 text-red-400');
   if (type==='green') setTimeout(()=>el.classList.add('hidden'), 3000);
 }
 
@@ -207,6 +450,110 @@ function timeAgo(d) {
   const day = Math.floor(h/24); return day+'d atrás';
 }
 
+// ========== INFO TOOLTIP ==========
+
+function positionPopup(trigger) {
+  const popup = trigger.querySelector('.info-popup');
+  if (!popup) return;
+
+  popup.classList.remove('arrow-up', 'arrow-down');
+  popup.style.display = 'block';
+  popup.style.position = 'fixed';
+  popup.style.top = '0';
+  popup.style.left = '0';
+
+  const pw = popup.offsetWidth || 260;
+  const ph = popup.offsetHeight || 180;
+
+  const icon = trigger.querySelector('.info-icon');
+  const ir = icon ? icon.getBoundingClientRect() : trigger.getBoundingClientRect();
+  const gap = 10;
+
+  let top, dir;
+  if (ir.top > ph + gap + 8) {
+    top = ir.top - ph - gap;
+    dir = 'arrow-down';
+  } else {
+    top = ir.bottom + gap;
+    dir = 'arrow-up';
+  }
+
+  let left = ir.left + ir.width / 2 - pw / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
+
+  popup.classList.add(dir);
+  popup.style.top = top + 'px';
+  popup.style.left = left + 'px';
+}
+
+function hidePopup(trigger) {
+  const p = trigger.querySelector('.info-popup');
+  if (p) p.style.display = 'none';
+}
+
+document.addEventListener('mouseover', function(e) {
+  const trigger = e.target.closest('.info-trigger');
+  if (trigger && !trigger.classList.contains('active')) {
+    clearTimeout(hidePopupTimer);
+    positionPopup(trigger);
+    return;
+  }
+  if (e.target.closest('.info-popup')) {
+    clearTimeout(hidePopupTimer);
+  }
+}, true);
+
+document.addEventListener('mouseout', function(e) {
+  const trigger = e.target.closest('.info-trigger');
+  if (!trigger || trigger.classList.contains('active')) return;
+
+  const to = e.relatedTarget;
+  if (to && trigger.contains(to)) return;
+  if (to && to.closest && to.closest('.info-popup')) return;
+
+  hidePopupTimer = setTimeout(() => hidePopup(trigger), 180);
+}, true);
+
+document.addEventListener('click', function(e) {
+  const trigger = e.target.closest('.info-trigger');
+  const allActive = document.querySelectorAll('.info-trigger.active');
+
+  allActive.forEach(el => {
+    if (el !== trigger) {
+      el.classList.remove('active');
+      hidePopup(el);
+    }
+  });
+
+  if (e.target.closest('.info-popup')) return;
+
+  if (trigger) {
+    e.stopPropagation();
+    if (trigger.classList.contains('active')) {
+      trigger.classList.remove('active');
+      hidePopup(trigger);
+    } else {
+      trigger.classList.add('active');
+      positionPopup(trigger);
+    }
+    return;
+  }
+
+  allActive.forEach(el => {
+    el.classList.remove('active');
+    hidePopup(el);
+  });
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.info-trigger.active').forEach(el => {
+      el.classList.remove('active');
+      hidePopup(el);
+    });
+  }
+});
+
 // ========== ACCOUNTS ==========
 
 async function loadAccounts() {
@@ -214,9 +561,9 @@ async function loadAccounts() {
   if (error) return showStatus('Erro ao carregar contas: '+error.message, 'red');
   const tbody = document.getElementById('accountsBody');
   tbody.innerHTML = data.map(a => `<tr>
-    <td class="px-4 py-3 font-medium text-gray-800">${esc(a.label)}</td>
-    <td class="px-4 py-3 text-gray-600">${esc(a.email)}</td>
-    <td class="px-4 py-3 text-gray-500 font-mono text-xs">${esc(a.imap_host)}:${a.imap_port}</td>
+    <td class="px-4 py-3 font-medium text-gray-100">${esc(a.label)}</td>
+    <td class="px-4 py-3 text-gray-300">${esc(a.email)}</td>
+    <td class="px-4 py-3 text-gray-400 font-mono text-xs">${esc(a.imap_host)}:${a.imap_port}</td>
     <td class="px-4 py-3 text-center">${a.active ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge badge-red">Inativo</span>'}</td>
     <td class="px-4 py-3 text-center">
       <button class="btn-icon" onclick="openAccountModal('${a.id}')">Editar</button>
@@ -307,12 +654,12 @@ async function loadNotified() {
     const ruleBadge = n.matched_rule ? 'badge-green' : 'badge-yellow';
     const ruleText = n.matched_rule || 'sem match';
     const accountLabel = n.email_accounts?.label || n.account_id?.slice(0,8) || '-';
-    return `<tr class="cursor-pointer hover:bg-gray-50" onclick="openNotifiedModal('${n.id}')">
-      <td class="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">${esc(n.subject||'(sem assunto)')}</td>
-      <td class="px-4 py-3 text-gray-600 max-w-[10rem] truncate">${esc(n.from_address||'-')}</td>
-      <td class="px-4 py-3 text-gray-500">${esc(accountLabel)}</td>
+    return `<tr class="cursor-pointer hover:bg-gray-800" onclick="openNotifiedModal('${n.id}')">
+      <td class="px-4 py-3 font-medium text-gray-100 max-w-xs truncate">${esc(n.subject||'(sem assunto)')}</td>
+      <td class="px-4 py-3 text-gray-300 max-w-[10rem] truncate">${esc(n.from_address||'-')}</td>
+      <td class="px-4 py-3 text-gray-400">${esc(accountLabel)}</td>
       <td class="px-4 py-3"><span class="badge ${ruleBadge}">${esc(ruleText)}</span></td>
-      <td class="px-4 py-3 text-gray-400 text-xs whitespace-nowrap" title="${n.notified_at}">${timeAgo(n.notified_at)}</td>
+      <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap" title="${n.notified_at}">${timeAgo(n.notified_at)}</td>
       <td class="px-4 py-3 text-center"><button class="btn-icon" onclick="event.stopPropagation();openNotifiedModal('${n.id}')">Detalhes</button></td>
     </tr>`;
   }).join('');
@@ -327,13 +674,24 @@ async function openNotifiedModal(id) {
   const accountLabel = n.email_accounts?.label || '-';
   const accountEmail = n.email_accounts?.email || '-';
   document.getElementById('notifiedModalBody').innerHTML = `
-    <div><span class="text-xs text-gray-400 uppercase font-medium">Assunto</span><p class="text-gray-800 font-medium">${esc(n.subject||'(sem assunto)')}</p></div>
-    <div><span class="text-xs text-gray-400 uppercase font-medium">De</span><p class="text-gray-800">${esc(n.from_address||'-')}</p></div>
-    <div><span class="text-xs text-gray-400 uppercase font-medium">Conta</span><p class="text-gray-800">${esc(accountLabel)} <span class="text-gray-400">(${esc(accountEmail)})</span></p></div>
-    <div><span class="text-xs text-gray-400 uppercase font-medium">Regra</span><p><span class="badge ${ruleBadge}">${esc(ruleLabel)}</span></p></div>
-    <div><span class="text-xs text-gray-400 uppercase font-medium">Notificado em</span><p class="text-gray-800" title="${n.notified_at}">${new Date(n.notified_at).toLocaleString('pt-BR')} (${timeAgo(n.notified_at)})</p></div>
-    <div><span class="text-xs text-gray-400 uppercase font-medium">Message ID</span>
-      <div class="flex items-center gap-2 mt-1"><code class="text-xs bg-gray-100 px-2 py-1 rounded break-all flex-1">${esc(n.message_id)}</code>
+    <div><span class="text-xs text-gray-500 uppercase font-medium">Assunto</span><p class="text-gray-100 font-medium">${esc(n.subject||'(sem assunto)')}</p></div>
+    <div><span class="text-xs text-gray-500 uppercase font-medium">De</span><p class="text-gray-100">${esc(n.from_address||'-')}</p></div>
+    <div><span class="text-xs text-gray-500 uppercase font-medium">Conta</span><p class="text-gray-100">${esc(accountLabel)} <span class="text-gray-500">(${esc(accountEmail)})</span></p></div>
+    <div><span class="text-xs text-gray-500 uppercase font-medium">Regra</span><p><span class="badge ${ruleBadge}">${esc(ruleLabel)}</span></p></div>
+    <div><span class="text-xs text-gray-500 uppercase font-medium">Notificado em</span><p class="text-gray-100" title="${n.notified_at}">${new Date(n.notified_at).toLocaleString('pt-BR')} (${timeAgo(n.notified_at)})</p></div>
+    <div>
+      <span class="text-xs text-gray-500 uppercase font-medium flex items-center gap-0.5">
+        Message ID
+        <span class="info-trigger">
+          <span class="info-icon">i</span>
+          <div class="info-popup">
+            <strong>Message ID</strong>
+            <p>Identificador único atribuído pelo servidor de email de origem.</p>
+            <p class="mt-1">Útil para rastrear ou referenciar o email em sistemas externos e suporte técnico.</p>
+          </div>
+        </span>
+      </span>
+      <div class="flex items-center gap-2 mt-1"><code class="text-xs bg-gray-800 px-2 py-1 rounded break-all flex-1 text-gray-300">${esc(n.message_id)}</code>
       <button onclick="navigator.clipboard.writeText('${esc(n.message_id)}')" class="btn-icon text-xs">Copiar</button></div>
     </div>`;
   document.getElementById('notifiedModal').classList.remove('hidden');
@@ -352,16 +710,16 @@ async function loadRules() {
   if (error) return showStatus('Erro: '+error.message, 'red');
   const tbody = document.getElementById('rulesBody');
   tbody.innerHTML = data.map(r => `<tr>
-    <td class="px-4 py-3 font-medium text-gray-800">${esc(r.name)}</td>
-    <td class="px-4 py-3 text-gray-500 font-mono text-xs">${esc(r.match_from||'-')}</td>
-    <td class="px-4 py-3 text-gray-500 font-mono text-xs">${esc(r.match_subject||'-')}</td>
-    <td class="px-4 py-3 text-gray-500 font-mono text-xs">${esc(r.match_keyword||'-')}</td>
+    <td class="px-4 py-3 font-medium text-gray-100">${esc(r.name)}</td>
+    <td class="px-4 py-3 text-gray-400 font-mono text-xs">${esc(r.match_from||'-')}</td>
+    <td class="px-4 py-3 text-gray-400 font-mono text-xs">${esc(r.match_subject||'-')}</td>
+    <td class="px-4 py-3 text-gray-400 font-mono text-xs">${esc(r.match_keyword||'-')}</td>
     <td class="px-4 py-3 text-center">${r.notify_whatsapp ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
     <td class="px-4 py-3 text-center">${r.notify_telegram ? '<span class="badge badge-blue">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
     <td class="px-4 py-3 text-center">${r.active ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge badge-red">Inativo</span>'}</td>
     <td class="px-4 py-3 text-center">
       <button class="btn-icon" onclick="openRuleModal('${r.id}')">Editar</button>
-      <button class="btn-icon" onclick="deleteRule('${r.id}')" style="color:#dc2626">Excluir</button>
+      <button class="btn-icon" onclick="deleteRule('${r.id}')" style="color:#fca5a5">Excluir</button>
     </td>
   </tr>`).join('');
 }
