@@ -1,1 +1,10 @@
 project_id = "footmbgthcbncfekhzov"
+
+[functions.encrypt-password]
+verify_jwt = false
+
+[functions.scan-emails]
+verify_jwt = false
+
+[functions.telegram-webhook]
+verify_jwt = false

@@ -13,8 +13,8 @@ async function triggerGitHubWorkflow(reason: string): Promise<boolean> {
   const res = await fetch(url, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${GITHUB_TOKEN}`,
-      "Accept": "application/vnd.github+json",
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: "application/vnd.github+json",
       "User-Agent": "email-bot-telegram-webhook",
     },
     body: JSON.stringify({
@@ -71,7 +71,9 @@ Deno.serve(async (req) => {
       return new Response("OK");
     }
 
-    const reason = sanitizeReason(text.replace("/scan", "").trim()) || "Trigger manual via Telegram";
+    const reason =
+      sanitizeReason(text.replace("/scan", "").trim()) ||
+      "Trigger manual via Telegram";
     const success = await triggerGitHubWorkflow(reason);
 
     const responseText = success

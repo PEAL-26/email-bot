@@ -23,11 +23,16 @@ Deno.serve(async (req) => {
     });
 
     return new Response(
-      JSON.stringify({ notificacoes_enviadas: result.totalNotified, erros: result.errors }),
+      JSON.stringify({
+        notificacoes_enviadas: result.totalNotified,
+        erros: result.errors,
+      }),
       { headers: { "Content-Type": "application/json" } },
     );
   } catch (err: any) {
     console.error("Erro geral:", err);
-    return new Response(JSON.stringify({ error: "Internal error" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Internal error" }), {
+      status: 500,
+    });
   }
 });
