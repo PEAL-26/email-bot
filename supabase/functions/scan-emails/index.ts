@@ -1,5 +1,6 @@
 import { scanEmails } from "../_shared/scanner.ts";
 import { corsHeaders } from "../_shared/cors";
+import type { ScanFilter } from "../_shared/types.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -19,6 +20,17 @@ Deno.serve(async (req) => {
 
   console.log("▶ Iniciando verificação de emails...");
 
+  let filters: ScanFilter[] | undefined;
+  try {
+    const body = await req.json().catch(() => null);
+    if (body && body.filters) {
+      filters = body.filters;
+      console.log(`   ${filters!.length} filtro(s) manual(ais) fornecido(s)`);
+    }
+  } catch {
+    // no body or invalid JSON, run normally
+  }
+
   try {
     const result = await scanEmails({
       supabaseUrl: Deno.env.get("SUPABASE_URL")!,
@@ -28,6 +40,7 @@ Deno.serve(async (req) => {
       zapiInstanceId: Deno.env.get("ZAPI_INSTANCE_ID"),
       zapiToken: Deno.env.get("ZAPI_TOKEN"),
       whatsappPhone: Deno.env.get("WHATSAPP_PHONE"),
+      filters,
     });
 
     return new Response(

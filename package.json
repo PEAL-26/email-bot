@@ -6,7 +6,8 @@
   "scripts": {
     "scan": "tsx src/node/index.ts",
     "scan:build": "tsx src/node/index.ts",
-    "serve": "tsx src/node/server.ts"
+    "serve": "tsx src/node/server.ts",
+    "scheduler": "tsx src/node/scheduler.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0",

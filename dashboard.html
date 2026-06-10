@@ -13,7 +13,11 @@
 
   <div id="app" class="max-w-7xl mx-auto p-4">
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-xl font-bold text-gray-100">Email Bot Dashboard</h1>
+      <div class="flex items-center gap-3">
+        <h1 class="text-xl font-bold text-gray-100">Email Bot Dashboard</h1>
+        <button id="scanBtn" onclick="openScanModal()"
+          class="bg-amber-600 text-white px-3 py-1.5 rounded hover:bg-amber-700 text-sm font-medium">🔍 Scanear</button>
+      </div>
       <div class="flex items-center gap-2 text-sm flex-wrap">
         <label class="text-gray-400 text-xs flex items-center gap-0.5">
           Supabase URL:
@@ -57,6 +61,7 @@
         <button class="tab-btn active" data-tab="accounts" onclick="switchTab('accounts')">Email Accounts</button>
         <button class="tab-btn" data-tab="notified" onclick="switchTab('notified')">Notified Emails</button>
         <button class="tab-btn" data-tab="rules" onclick="switchTab('rules')">Filter Rules</button>
+        <button class="tab-btn" data-tab="schedules" onclick="switchTab('schedules')">Schedule</button>
       </div>
 
       <div id="tab-accounts" class="tab-content">
@@ -129,6 +134,48 @@
             </thead>
             <tbody id="rulesBody" class="divide-y divide-gray-800"></tbody>
           </table>
+        </div>
+      </div>
+
+      <div id="tab-schedules" class="tab-content hidden">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-lg font-semibold text-gray-200">Agendamentos</h2>
+          <button onclick="openScheduleModal()"
+            class="bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 text-sm font-medium">+ Novo
+            Horário</button>
+        </div>
+        <div class="bg-gray-900 rounded-lg shadow overflow-x-auto mb-4">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-800 text-gray-400 uppercase text-xs">
+              <tr>
+                <th class="text-left px-4 py-3">Expressão Cron</th>
+                <th class="text-left px-4 py-3">Fonte</th>
+                <th class="text-left px-4 py-3">Descrição</th>
+                <th class="text-center px-4 py-3">Ativo</th>
+                <th class="text-center px-4 py-3">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="schedulesBody" class="divide-y divide-gray-800"></tbody>
+          </table>
+        </div>
+
+        <div class="bg-gray-900 rounded-lg shadow p-4">
+          <h3 class="text-sm font-semibold text-gray-200 mb-2">GitHub Actions</h3>
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-gray-400">SCAN_CRON actual:</span>
+            <code id="currentGithubCron" class="text-xs bg-gray-800 px-2 py-1 rounded text-gray-300 font-mono">0 */6 * * *</code>
+            <button onclick="showUpdateGithubCron()"
+              class="btn-icon text-xs">✏️ Alterar</button>
+          </div>
+          <div id="updateGithubCronArea" class="hidden mt-2 flex items-center gap-2">
+            <input id="newGithubCron" type="text" value="0 */6 * * *"
+              class="border border-gray-700 rounded px-2 py-1 text-sm bg-gray-800 text-gray-200 font-mono w-48">
+            <button onclick="updateGithubCron()"
+              class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs">Salvar</button>
+            <button onclick="document.getElementById('updateGithubCronArea').classList.add('hidden')"
+              class="px-3 py-1 text-xs border border-gray-700 rounded hover:bg-gray-700 text-gray-300">Cancelar</button>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">A alteração é feita via GitHub API. Requer GITHUB_PAT configurado no servidor.</p>
         </div>
       </div>
     </div>
@@ -325,6 +372,163 @@
         </div>
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeRuleModal()"
+            class="px-4 py-2 text-sm border border-gray-700 rounded hover:bg-gray-700 text-gray-300">Cancelar</button>
+          <button type="submit"
+            class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====== SCAN MODAL ====== -->
+  <div id="scanModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50"
+    onclick="if(event.target===this)closeScanModal()">
+    <div class="bg-gray-900 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center p-4 border-b border-gray-800">
+        <h3 class="font-semibold text-lg text-gray-100">Scan Manual</h3>
+        <button onclick="closeScanModal()"
+          class="text-gray-500 hover:text-gray-300 text-xl leading-none">&times;</button>
+      </div>
+      <div class="p-4 space-y-4">
+        <p class="text-xs text-gray-500 italic">Define os filtros para o scan. Se não preencheres nada, usa as regras da base de dados.</p>
+
+        <div class="border border-gray-700 rounded p-3 space-y-3">
+          <h4 class="text-sm font-medium text-gray-300">Filtro Único</h4>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1">From</label>
+              <input id="scanFrom"
+                class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500"
+                placeholder="Ex: @gmail.com">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1">Subject</label>
+              <input id="scanSubject"
+                class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500"
+                placeholder="Ex: fatura">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1">Keyword</label>
+              <input id="scanKeyword"
+                class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500"
+                placeholder="Ex: urgente">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1">Conta</label>
+              <select id="scanAccount"
+                class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200">
+                <option value="">Todas as contas</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1 flex items-center gap-0.5">
+                Período (minutos)
+                <span class="info-trigger">
+                  <span class="info-icon">i</span>
+                  <div class="info-popup">
+                    <strong>Período</strong>
+                    <p>Quantos minutos para trás o scan deve procurar emails.</p>
+                    <p class="mt-1"><strong>Padrão:</strong> 360 min (6 horas)</p>
+                    <p class="mt-1"><strong>Exemplo:</strong> 60 = só últimos 60 min</p>
+                  </div>
+                </span>
+              </label>
+              <input id="scanPeriod" type="number" value="360"
+                class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200">
+            </div>
+          </div>
+        </div>
+
+        <div class="border border-gray-700 rounded p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-medium text-gray-300">Bulk Filters</h4>
+            <button type="button" onclick="addScanLine()"
+              class="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded hover:bg-gray-600">+ Adicionar linha</button>
+          </div>
+          <p class="text-xs text-gray-500 italic">Cada linha = um filtro. Formato: <code class="text-gray-400">from | subject | keyword | account_id</code></p>
+          <textarea id="scanBulk" rows="4"
+            class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500 font-mono"
+            placeholder="@gmail.com | fatura | pagamento |&#10;@outlook.com | [URGENTE] | |&#10;| NF- | |"></textarea>
+        </div>
+
+        <div id="scanResult" class="hidden p-3 rounded text-sm font-medium"></div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-gray-800">
+          <button type="button" onclick="closeScanModal()"
+            class="px-4 py-2 text-sm border border-gray-700 rounded hover:bg-gray-700 text-gray-300">Cancelar</button>
+          <button id="executeScanBtn" onclick="executeScan()"
+            class="px-4 py-2 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 font-medium">🔍 Executar Scan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SCHEDULE MODAL ====== -->
+  <div id="scheduleModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50"
+    onclick="if(event.target===this)closeScheduleModal()">
+    <div class="bg-gray-900 rounded-lg shadow-xl w-full max-w-md mx-4">
+      <div class="flex justify-between items-center p-4 border-b border-gray-800">
+        <h3 id="scheduleModalTitle" class="font-semibold text-lg text-gray-100">Novo Horário</h3>
+        <button onclick="closeScheduleModal()"
+          class="text-gray-500 hover:text-gray-300 text-xl leading-none">&times;</button>
+      </div>
+      <form id="scheduleForm" class="p-4 space-y-3" onsubmit="saveSchedule(event)">
+        <input id="scheduleId" type="hidden">
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1 flex items-center gap-0.5">
+            Expressão Cron
+            <span class="info-trigger">
+              <span class="info-icon">i</span>
+              <div class="info-popup">
+                <strong>Expressão Cron</strong>
+                <p>Formato: <code>minuto hora dia mes dia_semana</code></p>
+                <p class="mt-1"><strong>Exemplos:</strong></p>
+                <ul>
+                  <li><strong>0 */3 * * *</strong> → A cada 3 horas</li>
+                  <li><strong>*/30 * * * *</strong> → A cada 30 minutos</li>
+                  <li><strong>0 8 * * 1-5</strong> → 08:00 dias úteis</li>
+                  <li><strong>0 9,18 * * *</strong> → 09:00 e 18:00</li>
+                </ul>
+                <p class="mt-1">Usa <strong>https://crontab.guru</strong> para gerar.</p>
+              </div>
+            </span>
+          </label>
+          <input id="scheduleCron" required
+            class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500 font-mono"
+            placeholder="0 */6 * * *">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1 flex items-center gap-0.5">
+            Fonte
+            <span class="info-trigger">
+              <span class="info-icon">i</span>
+              <div class="info-popup">
+                <strong>Fonte do Agendamento</strong>
+                <p><strong>Supabase:</strong> Executa via Edge Function + pg_cron</p>
+                <p><strong>GitHub:</strong> Executa via GitHub Actions (requer GITHUB_PAT)</p>
+                <p><strong>Ambos:</strong> Executa nos dois ambientes</p>
+              </div>
+            </span>
+          </label>
+          <select id="scheduleSource" required
+            class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200">
+            <option value="supabase">Supabase</option>
+            <option value="github">GitHub</option>
+            <option value="both">Ambos</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-400 mb-1">Descrição</label>
+          <input id="scheduleDesc"
+            class="w-full border border-gray-700 rounded px-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500"
+            placeholder="Ex: A cada 3 horas">
+        </div>
+        <label class="flex items-center gap-2 text-sm">
+          <input id="scheduleActive" type="checkbox" checked class="accent-blue-500">
+          <span class="text-gray-300">Activo</span>
+        </label>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeScheduleModal()"
             class="px-4 py-2 text-sm border border-gray-700 rounded hover:bg-gray-700 text-gray-300">Cancelar</button>
           <button type="submit"
             class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Salvar</button>
@@ -545,6 +749,7 @@
       loadAccounts();
       loadNotified();
       loadRules();
+      loadSchedules();
     }
 
     function showStatus(msg, type) {
@@ -688,6 +893,7 @@
       <button class="btn-icon" onclick="toggleActive('${a.id}',${a.active})">${a.active ? 'Desativar' : 'Ativar'}</button>
     </td>
   </tr>`).join('');
+      populateScanAccounts(data);
     }
 
     async function toggleActive(id, current) {
@@ -778,7 +984,10 @@
       <td class="px-4 py-3 text-gray-400">${esc(accountLabel)}</td>
       <td class="px-4 py-3"><span class="badge ${ruleBadge}">${esc(ruleText)}</span></td>
       <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap" title="${n.notified_at}">${timeAgo(n.notified_at)}</td>
-      <td class="px-4 py-3 text-center"><button class="btn-icon" onclick="event.stopPropagation();openNotifiedModal('${n.id}')">Detalhes</button></td>
+      <td class="px-4 py-3 text-center">
+        <button class="btn-icon" onclick="event.stopPropagation();openNotifiedModal('${n.id}')">Detalhes</button>
+        <button class="btn-icon" onclick="event.stopPropagation();scanFromEmail('${n.id}')" style="color:#f59e0b">Scan</button>
+      </td>
     </tr>`;
       }).join('');
     }
@@ -905,6 +1114,239 @@
       d.textContent = String(s);
       return d.innerHTML;
     }
+
+    // ========== SCAN MODAL ==========
+
+    let scanPreFill = null;
+
+    function populateScanAccounts(accounts) {
+      const sel = document.getElementById('scanAccount');
+      sel.innerHTML = '<option value="">Todas as contas</option>' +
+        accounts.map(a => `<option value="${a.id}">${esc(a.label)} (${esc(a.email)})</option>`).join('');
+    }
+
+    function openScanModal(preFill) {
+      if (!sb) return showStatus('Conecte-se primeiro ao Supabase.', 'red');
+      scanPreFill = preFill || null;
+      document.getElementById('scanFrom').value = '';
+      document.getElementById('scanSubject').value = '';
+      document.getElementById('scanKeyword').value = '';
+      document.getElementById('scanAccount').value = '';
+      document.getElementById('scanPeriod').value = '360';
+      document.getElementById('scanBulk').value = '';
+      document.getElementById('scanResult').classList.add('hidden');
+      document.getElementById('executeScanBtn').disabled = false;
+      document.getElementById('executeScanBtn').textContent = '🔍 Executar Scan';
+
+      if (preFill) {
+        if (preFill.from) document.getElementById('scanFrom').value = preFill.from;
+        if (preFill.subject) document.getElementById('scanSubject').value = preFill.subject;
+        if (preFill.account_id) document.getElementById('scanAccount').value = preFill.account_id;
+      }
+
+      document.getElementById('scanModal').classList.remove('hidden');
+      document.getElementById('scanModal').classList.add('flex');
+    }
+
+    function closeScanModal() {
+      document.getElementById('scanModal').classList.add('hidden');
+      document.getElementById('scanModal').classList.remove('flex');
+      scanPreFill = null;
+    }
+
+    function addScanLine() {
+      const from = document.getElementById('scanFrom').value.trim();
+      const subject = document.getElementById('scanSubject').value.trim();
+      const keyword = document.getElementById('scanKeyword').value.trim();
+      const account = document.getElementById('scanAccount').value;
+      const line = `${from} | ${subject} | ${keyword} | ${account}`;
+      const ta = document.getElementById('scanBulk');
+      ta.value += (ta.value ? '\n' : '') + line;
+    }
+
+    function parseBulkFilters() {
+      const bulk = document.getElementById('scanBulk').value.trim();
+      const lines = bulk ? bulk.split('\n').filter(l => l.trim()) : [];
+
+      if (lines.length === 0) {
+        const from = document.getElementById('scanFrom').value.trim();
+        const subject = document.getElementById('scanSubject').value.trim();
+        const keyword = document.getElementById('scanKeyword').value.trim();
+        const account = document.getElementById('scanAccount').value;
+        const period = parseInt(document.getElementById('scanPeriod').value) || 360;
+        if (!from && !subject && !keyword && !account) return null;
+        return [{
+          ...(from ? { from } : {}),
+          ...(subject ? { subject } : {}),
+          ...(keyword ? { keyword } : {}),
+          ...(account ? { account_id: account } : {}),
+          since_minutes: period,
+        }];
+      }
+
+      const filters = [];
+      const period = parseInt(document.getElementById('scanPeriod').value) || 360;
+      for (const line of lines) {
+        const parts = line.split('|').map(p => p.trim());
+        const f = { since_minutes: period };
+        if (parts[0]) f.from = parts[0];
+        if (parts[1]) f.subject = parts[1];
+        if (parts[2]) f.keyword = parts[2];
+        if (parts[3]) f.account_id = parts[3];
+        filters.push(f);
+      }
+      return filters;
+    }
+
+    async function executeScan() {
+      const btn = document.getElementById('executeScanBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ A scanear...';
+
+      const filters = parseBulkFilters();
+      const body = {};
+      if (filters) body.filters = filters;
+
+      try {
+        const baseUrl = window.location.origin;
+        const resp = await fetch(`${baseUrl}/scan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const result = await resp.json();
+
+        const el = document.getElementById('scanResult');
+        el.classList.remove('hidden');
+        if (result.error) {
+          el.className = 'p-3 rounded text-sm font-medium bg-red-900/40 text-red-400';
+          el.textContent = 'Erro: ' + result.error;
+        } else {
+          el.className = 'p-3 rounded text-sm font-medium bg-green-900/40 text-green-400';
+          el.textContent = `✅ Scan concluído. ${result.totalNotified} notificação(ões) enviada(s).` +
+            (result.errors?.length ? ` ⚠️ ${result.errors.length} erro(s).` : '');
+          loadNotified();
+        }
+      } catch (err) {
+        const el = document.getElementById('scanResult');
+        el.classList.remove('hidden');
+        el.className = 'p-3 rounded text-sm font-medium bg-red-900/40 text-red-400';
+        el.textContent = 'Erro de rede: ' + (err.message || err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔍 Executar Scan';
+      }
+    }
+
+    async function scanFromEmail(id) {
+      const { data, error } = await sb.from('notified_emails').select('*').eq('id', id).single();
+      if (error || !data) return showStatus('Erro ao carregar email: ' + (error?.message || ''), 'red');
+      openScanModal({
+        from: data.from_address || '',
+        subject: data.subject || '',
+        account_id: data.account_id || '',
+      });
+    }
+
+    // ========== SCHEDULES ==========
+
+    async function loadSchedules() {
+      const { data, error } = await sb.from('scan_schedules').select('*').order('created_at', { ascending: false });
+      if (error) return showStatus('Erro ao carregar schedules: ' + error.message, 'red');
+      const tbody = document.getElementById('schedulesBody');
+      tbody.innerHTML = (data || []).map(s => `<tr>
+    <td class="px-4 py-3 font-mono text-xs text-gray-100">${esc(s.cron_expression)}</td>
+    <td class="px-4 py-3">${sourceBadge(s.source)}</td>
+    <td class="px-4 py-3 text-gray-300">${esc(s.description || '-')}</td>
+    <td class="px-4 py-3 text-center">${s.active ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-red">Não</span>'}</td>
+    <td class="px-4 py-3 text-center">
+      <button class="btn-icon" onclick="openScheduleModal('${s.id}')">Editar</button>
+      <button class="btn-icon" onclick="deleteSchedule('${s.id}')" style="color:#fca5a5">Excluir</button>
+    </td>
+  </tr>`).join('');
+    }
+
+    function sourceBadge(source) {
+      const colors = { supabase: 'badge-blue', github: 'badge-yellow', both: 'badge-green' };
+      const labels = { supabase: 'Supabase', github: 'GitHub', both: 'Ambos' };
+      return `<span class="badge ${colors[source] || 'badge-gray'}">${labels[source] || source}</span>`;
+    }
+
+    function openScheduleModal(id) {
+      document.getElementById('scheduleForm').reset();
+      document.getElementById('scheduleId').value = '';
+      document.getElementById('scheduleModalTitle').textContent = 'Novo Horário';
+      document.getElementById('scheduleSource').value = 'supabase';
+      document.getElementById('scheduleActive').checked = true;
+      if (id) {
+        sb.from('scan_schedules').select('*').eq('id', id).single().then(({ data }) => {
+          if (!data) return;
+          document.getElementById('scheduleModalTitle').textContent = 'Editar Horário';
+          document.getElementById('scheduleId').value = data.id;
+          document.getElementById('scheduleCron').value = data.cron_expression;
+          document.getElementById('scheduleSource').value = data.source;
+          document.getElementById('scheduleDesc').value = data.description || '';
+          document.getElementById('scheduleActive').checked = data.active;
+        });
+      }
+      document.getElementById('scheduleModal').classList.remove('hidden');
+      document.getElementById('scheduleModal').classList.add('flex');
+    }
+
+    function closeScheduleModal() {
+      document.getElementById('scheduleModal').classList.add('hidden');
+      document.getElementById('scheduleModal').classList.remove('flex');
+    }
+
+    async function saveSchedule(e) {
+      e.preventDefault();
+      const id = document.getElementById('scheduleId').value;
+      const payload = {
+        cron_expression: document.getElementById('scheduleCron').value.trim(),
+        source: document.getElementById('scheduleSource').value,
+        description: document.getElementById('scheduleDesc').value.trim() || null,
+        active: document.getElementById('scheduleActive').checked,
+      };
+      const { error } = id
+        ? await sb.from('scan_schedules').update(payload).eq('id', id)
+        : await sb.from('scan_schedules').insert(payload);
+      if (error) return showStatus('Erro ao salvar: ' + error.message, 'red');
+      closeScheduleModal();
+      loadSchedules();
+      showStatus('Horário salvo!', 'green');
+    }
+
+    async function deleteSchedule(id) {
+      if (!confirm('Excluir este horário permanentemente?')) return;
+      const { error } = await sb.from('scan_schedules').delete().eq('id', id);
+      if (error) return showStatus('Erro: ' + error.message, 'red');
+      loadSchedules();
+      showStatus('Horário excluído.', 'green');
+    }
+
+    function showUpdateGithubCron() {
+      document.getElementById('updateGithubCronArea').classList.remove('hidden');
+    }
+
+    async function updateGithubCron() {
+      const cron = document.getElementById('newGithubCron').value.trim();
+      if (!cron) return showStatus('Preenche a expressão cron.', 'red');
+      try {
+        const resp = await fetch(window.location.origin + '/update-github-cron', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cron }),
+        });
+        const data = await resp.json();
+        if (data.error) throw new Error(data.error);
+        document.getElementById('currentGithubCron').textContent = cron;
+        document.getElementById('updateGithubCronArea').classList.add('hidden');
+        showStatus('SCAN_CRON actualizado no GitHub!', 'green');
+      } catch (err) {
+        showStatus('Erro: ' + (err.message || err), 'red');
+      }
+    }
+
   </script>
 </body>
 

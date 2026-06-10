@@ -40,6 +40,14 @@ export interface NotifierConfig {
   };
 }
 
+export interface ScanFilter {
+  from?: string;
+  subject?: string;
+  keyword?: string;
+  account_id?: string;
+  since_minutes?: number;
+}
+
 export interface ScanContext {
   supabaseUrl: string;
   supabaseKey: string;
