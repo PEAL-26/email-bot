@@ -1,4 +1,4 @@
-import { sendTelegram } from "../../../src/shared/notifiers/telegram.ts";
+import { sendTelegram } from "../_shared/notifiers/telegram.ts";
 
 const GITHUB_TOKEN = Deno.env.get("GITHUB_PAT")!;
 const GITHUB_OWNER = Deno.env.get("GITHUB_OWNER")!;

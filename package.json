@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "scan": "tsx src/node/index.ts",
-    "scan:build": "tsc && node dist/node/index.js"
+    "scan:build": "tsx src/node/index.ts",
+    "serve": "tsx src/node/server.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0",

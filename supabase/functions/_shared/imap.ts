@@ -50,11 +50,11 @@ export async function fetchNewEmails(
       const body = bodyPart ? new TextDecoder().decode(bodyPart) : "";
 
       emails.push({
-        messageId: msg.envelope.messageId ?? `${account.id}-${msg.uid}`,
-        subject: msg.envelope.subject ?? "(sem assunto)",
-        from: msg.envelope.from?.[0]?.address ?? "",
-        fromName: msg.envelope.from?.[0]?.name ?? "",
-        date: msg.envelope.date ?? new Date(),
+        messageId: msg.envelope?.messageId ?? `${account.id}-${msg.uid}`,
+        subject: msg.envelope?.subject ?? "(sem assunto)",
+        from: msg.envelope?.from?.[0]?.address ?? "",
+        fromName: msg.envelope?.from?.[0]?.name ?? "",
+        date: msg.envelope?.date ?? new Date(),
         body,
       });
     }

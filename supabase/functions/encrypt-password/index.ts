@@ -1,4 +1,4 @@
-import { encrypt } from "../../../src/shared/crypto.ts";
+import { encrypt } from "../_shared/crypto.ts";
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
